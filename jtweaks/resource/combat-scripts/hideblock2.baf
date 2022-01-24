@@ -1,0 +1,16 @@
+IF
+	Global("BDAI_SKILL_MODE","LOCALS",2)
+	ActionListEmpty()
+	InParty(Myself)
+	!GlobalTimerNotExpired("BD_HIDE","LOCALS")
+	!StateCheck(Myself,STATE_INVISIBLE)
+	!StateCheck(Myself,STATE_BLIND)
+	!ModalState(STEALTH)
+	!Range(NearestEnemyOf(Myself),30)
+	!ButtonDisabled(BUTTON_STEALTH)
+THEN
+	RESPONSE #100
+		SetGlobalTimer("BD_HIDE","LOCALS",ONE_ROUND)
+		Hide()
+END
+

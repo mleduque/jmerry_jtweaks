@@ -1,0 +1,9 @@
+IF
+	Global("UndeadHunterSetup","LOCALS",0)
+THEN
+	RESPONSE #100
+		SetGlobal("UndeadHunterSetup","LOCALS",1)
+		ReallyForceSpellRes("SPCL241",Myself)
+		ReallyForceSpellRes("SPCL242",Myself)
+END
+/* An AddKit() action would work even better, except that it also prints "Special ability Gained" messages. Eric's not using those abilities anyway. */

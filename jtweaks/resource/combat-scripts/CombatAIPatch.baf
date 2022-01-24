@@ -1,0 +1,173 @@
+IF
+	Global("BDAI_SKILL_MODE","LOCALS",1)
+	ActionListEmpty()
+	InParty(Myself)
+	!See([EVILCUTOFF])
+	!ModalState(DETECTTRAPS)
+	!ModalState(STEALTH)
+	OR(3)
+		Class(Myself,THIEF_ALL)
+		Class(Myself,MONK)
+		Class(Myself,SHAMAN)
+THEN
+	RESPONSE #100
+		FindTraps()
+END
+
+IF
+	Global("BDAI_SKILL_MODE","LOCALS",2)
+	ActionListEmpty()
+	InParty(Myself)
+	!GlobalTimerNotExpired("BD_HIDE","LOCALS")
+	!StateCheck(Myself,STATE_INVISIBLE)
+	!StateCheck(Myself,STATE_BLIND)
+	!ModalState(STEALTH)
+	OR (2)
+		Kit(Myself,SHADOWDANCER)
+		!Range(NearestEnemyOf(Myself),30)
+	!ButtonDisabled(BUTTON_STEALTH)
+	OR(3)
+		Class(Myself,THIEF_ALL)
+		Class(Myself,RANGER_ALL)
+		Class(Myself,MONK)
+THEN
+	RESPONSE #100
+		SetGlobalTimer("BD_HIDE","LOCALS",ONE_ROUND)
+		Hide()
+END
+
+IF
+	Global("BDAI_SKILL_MODE","LOCALS",3)
+	ActionListEmpty()
+	InParty(Myself)
+	!StateCheck(Myself,STATE_INVISIBLE)
+	!ModalState(BATTLESONG)
+	Class(Myself,BARD_ALL)
+	!Kit(Myself,JESTER)
+THEN
+	RESPONSE #100
+		BattleSong()
+END
+
+IF
+	Global("BDAI_SKILL_MODE","LOCALS",3)
+	ActionListEmpty()
+	InParty(Myself)
+	!ModalState(BATTLESONG)
+	OR(2)
+		Class(Myself,BARD_ALL)
+		Class(Myself,SHAMAN)
+	OR(2)
+		Kit(Myself,JESTER)
+		Class(Myself,SHAMAN)
+	OR(2)
+		Range([EVILCUTOFF],30)
+		ActuallyInCombat()
+THEN
+	RESPONSE #100
+		SetGlobal("BD_BRDS","LOCALS",1)
+		BattleSong()
+END
+
+IF
+	Global("BDAI_SKILL_MODE","LOCALS",3)
+	ActionListEmpty()
+	InParty(Myself)
+	ModalState(BATTLESONG)
+	!See([EVILCUTOFF])
+	!ActuallyInCombat()
+	OR(2)
+		Class(Myself,BARD_ALL)
+		Class(Myself,SHAMAN)
+	OR(2)
+		Kit(Myself,JESTER)
+		Class(Myself,SHAMAN)
+	Delay(30)
+	Global("BD_BRDS","LOCALS",1)
+THEN
+	RESPONSE #100
+		SetGlobal("BD_BRDS","LOCALS",0)
+		ClearActions(Myself)
+END
+
+IF
+	Global("BDAI_SKILL_MODE","LOCALS",4)
+	ActionListEmpty()
+	InParty(Myself)
+	!ModalState(TURNUNDEAD)
+	Range([EVILCUTOFF.UNDEAD],12)
+	OR(3)
+		CanTurn([EVILCUTOFF.UNDEAD],5)
+		CanTurn(SecondNearest([EVILCUTOFF.UNDEAD]),5)
+		CanTurn(ThirdNearest([EVILCUTOFF.UNDEAD]),5)
+	!ButtonDisabled(BUTTON_TURNUNDEAD)
+THEN
+	RESPONSE #100
+		Turn()
+END
+
+IF
+	!ModalState(BATTLESONG)
+	Global("BDAI_DISABLE_ATTACK","LOCALS",0)
+	ActionListEmpty()
+	InParty(Myself)
+	CheckStat(Myself,0,SANCTUARY)
+	WeaponEffectiveVs(NearestEnemyOf(Myself),MAINHAND)
+	WeaponCanDamage(NearestEnemyOf(Myself),MAINHAND)
+	See(NearestEnemyOf(Myself))
+	!StateCheck(NearestEnemyOf(Myself),STATE_REALLY_DEAD)
+	!Allegiance(NearestEnemyOf(Myself),GOODCUTOFF)
+	!InParty(NearestEnemyOf(Myself))
+THEN
+	RESPONSE #100
+		AttackOneRound(NearestEnemyOf(Myself))
+END
+
+IF
+	!ModalState(BATTLESONG)
+	Global("BDAI_DISABLE_ATTACK","LOCALS",0)
+	ActionListEmpty()
+	InParty(Myself)
+	CheckStat(Myself,0,SANCTUARY)
+	WeaponEffectiveVs(SecondNearestEnemyOf(Myself),MAINHAND)
+	WeaponCanDamage(SecondNearestEnemyOf(Myself),MAINHAND)
+	See(SecondNearestEnemyOf(Myself))
+	!StateCheck(SecondNearestEnemyOf(Myself),STATE_REALLY_DEAD)
+	!Allegiance(SecondNearestEnemyOf(Myself),GOODCUTOFF)
+	!InParty(SecondNearestEnemyOf(Myself))
+THEN
+	RESPONSE #100
+		AttackOneRound(SecondNearestEnemyOf(Myself))
+END
+
+IF
+	!ModalState(BATTLESONG)
+	Global("BDAI_DISABLE_ATTACK","LOCALS",0)
+	ActionListEmpty()
+	InParty(Myself)
+	CheckStat(Myself,0,SANCTUARY)
+	WeaponEffectiveVs(ThirdNearestEnemyOf(Myself),MAINHAND)
+	WeaponCanDamage(ThirdNearestEnemyOf(Myself),MAINHAND)
+	See(ThirdNearestEnemyOf(Myself))
+	!StateCheck(ThirdNearestEnemyOf(Myself),STATE_REALLY_DEAD)
+	!Allegiance(ThirdNearestEnemyOf(Myself),GOODCUTOFF)
+	!InParty(ThirdNearestEnemyOf(Myself))
+THEN
+	RESPONSE #100
+		AttackOneRound(ThirdNearestEnemyOf(Myself))
+END
+
+IF
+	Global("BDAI_DISABLE_ATTACK","LOCALS",0)
+	ActionListEmpty()
+	InParty(Myself)
+	CheckStat(Myself,0,SANCTUARY)
+	!ModalState(BATTLESONG)
+	See(NearestEnemyOf(Myself))
+	!StateCheck(NearestEnemyOf(Myself),STATE_REALLY_DEAD)
+	!Allegiance(NearestEnemyOf(Myself),GOODCUTOFF)
+	!InParty(NearestEnemyOf(Myself))
+THEN
+	RESPONSE #100
+		AttackOneRound(NearestEnemyOf(Myself))
+END

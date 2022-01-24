@@ -1,0 +1,15 @@
+IF
+	Global("BDAI_SKILL_MODE","LOCALS",3)
+	ActionListEmpty()
+	InParty(Myself)
+	ModalState(BATTLESONG)
+	!See([EVILCUTOFF])
+	!ActuallyInCombat()
+	Delay(30)
+	Global("BD_BRDS","LOCALS",1)
+THEN
+	RESPONSE #100
+		SetGlobal("BD_BRDS","LOCALS",0)
+		ClearActions(Myself)
+END
+

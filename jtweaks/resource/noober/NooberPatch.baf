@@ -1,0 +1,26 @@
+IF
+	Global("J8noober","GLOBAL",1)
+	AreaType(OUTDOOR)
+	CombatCounter(0)
+	Global("OHD_inscribed_noober","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8noober","GLOBAL",2)
+		CreateCreatureObjectDoor("J8#noob",Player1,0,0,0)
+END
+
+IF
+	Global("J8noober","GLOBAL",1)
+	AreaType(OUTDOOR)
+	CombatCounter(0)
+	Global("OHD_inscribed_noober","GLOBAL",1)
+	!GlobalTimerExpired("OHD_noober_timer","GLOBAL")
+THEN
+	RESPONSE #100
+		SetGlobal("J8noober","GLOBAL",3)
+		SetGlobal("OHD_inscribed_noober","GLOBAL",3)
+		CreateCreatureObjectEffect("bdoffscr","",Player1)  // No such index
+		ApplySpellRES("bdoffscr","bdoffscr")  // No such index
+		SmallWait(1)
+		CreateCreatureObjectEffect("OHDNOOB","","bdoffscr")  // Noober
+END

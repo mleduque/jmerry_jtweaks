@@ -1,0 +1,65 @@
+IF
+	!ModalState(BATTLESONG)
+	Global("BDAI_DISABLE_ATTACK","LOCALS",0)
+	ActionListEmpty()
+	InParty(Myself)
+	CheckStat(Myself,0,SANCTUARY)
+	WeaponEffectiveVs(NearestEnemyOf(Myself),MAINHAND)
+	WeaponCanDamage(NearestEnemyOf(Myself),MAINHAND)
+	See(NearestEnemyOf(Myself))
+	!StateCheck(NearestEnemyOf(Myself),STATE_REALLY_DEAD)
+	!Allegiance(NearestEnemyOf(Myself),GOODCUTOFF)
+	!InParty(NearestEnemyOf(Myself))
+THEN
+	RESPONSE #100
+		AttackOneRound(NearestEnemyOf(Myself))
+END
+
+IF
+	!ModalState(BATTLESONG)
+	Global("BDAI_DISABLE_ATTACK","LOCALS",0)
+	ActionListEmpty()
+	InParty(Myself)
+	CheckStat(Myself,0,SANCTUARY)
+	WeaponEffectiveVs(SecondNearestEnemyOf(Myself),MAINHAND)
+	WeaponCanDamage(SecondNearestEnemyOf(Myself),MAINHAND)
+	See(SecondNearestEnemyOf(Myself))
+	!StateCheck(SecondNearestEnemyOf(Myself),STATE_REALLY_DEAD)
+	!Allegiance(SecondNearestEnemyOf(Myself),GOODCUTOFF)
+	!InParty(SecondNearestEnemyOf(Myself))
+THEN
+	RESPONSE #100
+		AttackOneRound(SecondNearestEnemyOf(Myself))
+END
+
+IF
+	!ModalState(BATTLESONG)
+	Global("BDAI_DISABLE_ATTACK","LOCALS",0)
+	ActionListEmpty()
+	InParty(Myself)
+	CheckStat(Myself,0,SANCTUARY)
+	WeaponEffectiveVs(ThirdNearestEnemyOf(Myself),MAINHAND)
+	WeaponCanDamage(ThirdNearestEnemyOf(Myself),MAINHAND)
+	See(ThirdNearestEnemyOf(Myself))
+	!StateCheck(ThirdNearestEnemyOf(Myself),STATE_REALLY_DEAD)
+	!Allegiance(ThirdNearestEnemyOf(Myself),GOODCUTOFF)
+	!InParty(ThirdNearestEnemyOf(Myself))
+THEN
+	RESPONSE #100
+		AttackOneRound(ThirdNearestEnemyOf(Myself))
+END
+
+IF
+	Global("BDAI_DISABLE_ATTACK","LOCALS",0)
+	ActionListEmpty()
+	InParty(Myself)
+	CheckStat(Myself,0,SANCTUARY)
+	!ModalState(BATTLESONG)
+	See(NearestEnemyOf(Myself))
+	!StateCheck(NearestEnemyOf(Myself),STATE_REALLY_DEAD)
+	!Allegiance(NearestEnemyOf(Myself),GOODCUTOFF)
+	!InParty(NearestEnemyOf(Myself))
+THEN
+	RESPONSE #100
+		AttackOneRound(NearestEnemyOf(Myself))
+END

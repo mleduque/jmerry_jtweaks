@@ -1,0 +1,268 @@
+@BrownBearShapeshift
+Shapeshift: Brown Bear
+
+Strength: 18/00
+Dexterity: 12
+
+Base Armor Class: 6
+Number of Attacks: 3
+Attack Damage: 1d6+1 (piercing), strikes as +1 weapon
+
+Special Abilities:
+– Increased movement rate
+
+@WolfShapeshift
+Shapeshift: Wolf
+
+Strength: 15
+Dexterity: 18
+
+Base Armor Class: 6
+Number of Attacks: 2
+Attack Damage: 1d8+1 (piercing), strikes as +1 weapon
+
+Special Abilities:
+– Cold Resistance: 100%
+– Electrical Resistance: 50%
+– Magic Cold Resistance: 100%
+– Increased movement rate
+
+@BlackBearShapeshift
+Shapeshift: Black Bear
+
+Strength: 18/00
+Dexterity: 12
+
+Base Armor Class: 7
+Number of Attacks: 3
+Attack Damage: 1d6+1 (piercing), strikes as +1 weapon
+
+Special Abilities:
+– Increased movement rate
+
+@SwordSpiderShapeshift
+Shapeshift: Sword Spider
+
+Strength: 16
+Dexterity: 16
+
+Base Armor Class: 3
+Number of Attacks: 4
+Attack Damage: 2d6 (piercing), strikes as +1 weapon
+
+Special Abilities:
+– Immunity to web
+– Hasted
+
+@BabyWyvernShapeshift
+Shapeshift: Baby Wyvern
+
+Strength: 16
+Dexterity: 17
+
+Base Armor Class: 3
+Number of Attacks: 2
+Attack Damage: 1d6+2 (piercing), strikes as +2 weapon, on hit it causes 5 poison damage/second for 20 seconds (Save vs. Poison at -4 to avoid)
+
+Special Abilities: 
+– Immune to hold, paralysis, slow, level drain, web, entangle, and grease.
+
+@FireSalamanderShapeshift
+Shapeshift: Fire Salamander
+
+Strength: 18/75 
+Dexterity: 19
+
+Base Armor Class: 2 
+Number of Attacks: 1 
+Attack Damage: 1d8+3 (piercing), strikes as +3 weapon
+
+Special Abilities: 
+– THAC0: +1
+– Increased movement rate 
+– Fire Resistance: 50%
+– Breathe Fireball three times per day (2d6 fire damage to target)
+
+@WerewolfShapeshift
+Shapeshift: Werewolf
+
+Strength: 19 
+Dexterity: 16
+
+Base Armor Class: 1
+Number of Attacks: 2
+Attack Damage: 1d6+2 (slashing), strikes as +2 weapon
+
+Special Abilities:
+– Magic Resistance: 20%
+
+@GreaterWerewolfShapeshift
+Shapeshift: Greater Werewolf
+
+Strength: 21
+Dexterity: 20
+
+Base Armor Class: -6
+Number of Attacks: 3
+Attack Damage: 1d8 (slashing), strikes as +2 weapon
+
+Special Abilities:
+– Fire Resistance: 50%
+– Cold Resistance: 50%
+– Electricity Resistance: 50%
+– Acid Resistance: 50%
+– Magic Resistance: 40%
+- Regenerates 1 Hit Point every 2 seconds
+
+@FireElementalShapeshift
+Fire Elemental Transformation
+
+Level: Quest
+Range: 0
+Duration: Permanent until dismissed
+Casting Time: 1
+Area of Effect: The caster
+Saving Throw: None
+
+Harnessing the power of fire, this powerful shapechange ability allows the Druid to become a 24-HD fire elemental of immense strength. The elemental form has an AC of -5, a THAC0 of 2, and attacks once per round for 1d10 crushing and 1d10 fire damage, striking as a +4 weapon. When the Druid returns to human form, <PRO_HESHE> is also healed 3d10 Hit Points.
+
+@EarthElementalShapeshift
+Earth Elemental Transformation
+
+Level: Quest
+Range: 0
+Duration: Permanent until dismissed
+Casting Time: 1
+Area of Effect: The caster
+Saving Throw: None
+
+Harnessing the power of the earth, this powerful shapechange ability allows the Druid to become a 24 HD earth elemental of immense strength. The elemental form has an AC of -5, a THAC0 of 2, and attacks twice per round for 2d10 crushing damage, striking as a +4 weapon. When the Druid returns to human form, <PRO_HESHE> is also healed 3d10 Hit Points.
+
+@FlindShapeshift -NO CHANGE-
+
+@OgreShapeshift
+Shapeshift: Ogre
+
+Strength: 18/00
+Dexterity: 9
+
+Base Armor Class: 5
+Number of Attacks: 1
+Attack Damage: 4d6+1 (crushing), strikes as +1 weapon
+
+Special Abilities: 
+– Increased movement rate
+
+@SpiderShapeshift
+Shapeshift: Spider
+
+Strength: 15
+Dexterity: 17
+
+Base Armor Class: 4
+Number of Attacks: 2
+Attack Damage: 1d4+1 (piercing), strikes as a +1 weapon, poison (1 damage per 2 seconds for 5 rounds; Save vs. Poison at +1 negates)
+
+Special Abilities:
+– Immunity to web
+– Increased movement rate
+
+@MustardJellyShapeshift -NO CHANGE-
+
+@MindFlayerShapechange
+Shapechange: Mind Flayer
+
+Strength: 10
+Dexterity: 10
+
+Base Armor Class: 5
+Number of Attacks: 4
+Attack Damage: 1d2 (crushing), -5 Intelligence, strikes as +2 weapon
+
+Special Abilities:
+– Psionic Blast (Stuns enemies in an area for five rounds unless a save vs. spell is made)
+
+@IronGolemShapechange
+Shapechange: Iron Golem
+
+Strength: 24
+Dexterity: 9
+
+Base Armor Class: 3
+Number of Attacks: 1
+Attack Damage: 4d10 (crushing), strikes as +4 weapon
+
+Special Abilities:
+ – Fire Resistance: 125%
+ – Cold Resistance: 100%
+ – Electrical Resistance: 100%
+ – Acid Resistance: 100%
+ – Magic Resistance: 100%
+ – Magic Fire Resistance: 125%
+ – Magic Cold Resistance: 100%
+ – Slashing Resistance: 20%
+ – Crushing Resistance: 20%
+ – Piercing Resistance: 20%
+ – Missile Resistance: 20%
+ – Immune to backstab, weapons of +2 enchantment or less, sleep, fear, hold, charm, paralysis, poison.
+
+@GiantTrollShapechange
+Shapechange: Giant Troll
+
+Strength: 18
+Dexterity: 20
+
+Base Armor Class: 4
+Number of Attacks: 3
+Attack Damage: 2d6 (piercing), strikes as +2 weapon
+
+Special Abilities: 
+ – Immune to stun, sleep, hold, paralysis; regenerates 1 Hit Point per second.
+
+@GreaterWolfwereShapechange
+Shapechange: Greater Wolfwere
+
+Strength: 19
+Dexterity: 19
+
+Base Armor Class: 2
+Number of Attacks: 3
+Attack Damage: 1d12 (slashing), strikes as +1 weapon
+
+Special Abilities:
+ – Fire Resistance: 50%
+ – Cold Resistance: 50%
+ – Electrical Resistance: 50%
+ – Acid Resistance: 50%
+ – Magic Fire Resistance: 50%
+ – Magic Cold Resistance: 50%
+ – Immune to weapons of +1 enchantment or less
+ – Regenerates 8 Hit Points per second
+
+@FireElementalShapechange
+Shapechange: Fire Elemental
+
+Strength: 9
+Dexterity: 9
+
+Base Armor Class: 2
+Number of Attacks: 1
+Attack Damage: 3d8 (crushing), +1d6 fire, strikes as +4 weapon
+
+Special Ability:
+ – Fire Resistance: 100%
+ – Magic Fire Resistance: 100%
+ – Immune to weapons of +2 enchantment or less.	
+
+@EarthElementalShapechange
+Shapechange: Earth Elemental
+
+Strength: 19
+Dexterity: 9
+
+Base Armor Class: 2
+Number of Attacks: 1
+Attack Damage: 4d8 (crushing), strikes as +4 weapon
+
+Special Ability:
+ – Immune to weapons of +2 enchantment or less.

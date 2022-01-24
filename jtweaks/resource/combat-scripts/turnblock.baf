@@ -1,0 +1,21 @@
+IF
+	Global("BDAI_SKILL_MODE","LOCALS",4)
+	ActionListEmpty()
+	InParty(Myself)
+	!ModalState(TURNUNDEAD)
+	Range([EVILCUTOFF.UNDEAD],12)
+	OR(2)
+		CanTurn([EVILCUTOFF.UNDEAD],5)
+		CanTurn(SecondNearest([EVILCUTOFF.UNDEAD]),5)
+	OR(2)
+		CanTurn(ThirdNearest([EVILCUTOFF.UNDEAD]),5)
+		CanTurn(FourthNearest([EVILCUTOFF.UNDEAD]),5)
+	OR(2)
+		CanTurn(FifthNearest([EVILCUTOFF.UNDEAD]),5)
+		CanTurn(SixthNearest([EVILCUTOFF.UNDEAD]),5)
+	!ButtonDisabled(BUTTON_TURNUNDEAD)
+THEN
+	RESPONSE #100
+		Turn()
+END
+

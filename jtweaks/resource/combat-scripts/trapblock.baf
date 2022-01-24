@@ -1,0 +1,16 @@
+IF
+	Global("BDAI_SKILL_MODE","LOCALS",1)
+	ActionListEmpty()
+	InParty(Myself)
+	!See([EVILCUTOFF])
+	!ModalState(DETECTTRAPS)
+	!ModalState(STEALTH)
+	OR(3)
+		Class(Myself,THIEF_ALL)
+		Class(Myself,MONK)
+		Class(Myself,SHAMAN)
+THEN
+	RESPONSE #100
+		FindTraps()
+END
+
