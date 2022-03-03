@@ -7,9 +7,10 @@ ALWAYS
 	ACTION_IF ((FILE_EXISTS ~dlc/sod-dlc.zip~) OR (FILE_EXISTS ~sod-dlc.zip~)) THEN BEGIN FAIL @15 END // Modmerge check
 	ACTION_IF NOT GAME_IS ~bgee bg2ee eet~ THEN BEGIN FAIL @10 END // EE games only
 	INCLUDE ~jtweaks/resource/functions.tph~
+	INCLUDE ~jtweaks/resource/jtweaks-ini.tph~
 END
 
-VERSION ~1.1~
+VERSION ~2.0~
 
 README ~jtweaks/readme-jtweaks.txt~
 
@@ -45,6 +46,7 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.spl~ @12
 	              ~SPPR550.SPL~ ~override~
 	              ~SPPR712.SPL~ ~override~
 	              ~SPJA01.SPL~ ~override~
+	              ~BHAAL4A.SPL~ ~override~
 		LPF ADD_SPELL_EFFECT INT_VAR opcode=309 target=2 parameter1=1 duration=60 insert_point=0 STR_VAR resource=ohdress END
 	BUT_ONLY // Add variable-setting effect to resurrection spells
 	COPY_EXISTING ~RODS03.ITM~ ~override~
@@ -54,10 +56,17 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.spl~ @12
 	              ~SPPR550A.SPL~ ~override~
 	              ~SPPR712A.SPL~ ~override~
 	              ~SPJA01A.SPL~ ~override~
+	              ~BHAAL4AA.SPL~ ~override~
 		LPF DELETE_EFFECT INT_VAR match_opcode=309 STR_VAR match_resource=ohdress END
 	BUT_ONLY // Remove variable-setting effect from resurrection subspells that can't affect Vernus
+
 	ACTION_IF FILE_EXISTS_IN_GAME ~SPPR712H.SPL~ THEN BEGIN
 		COPY_EXISTING ~SPPR712H.SPL~ ~override~
+			LPF DELETE_EFFECT INT_VAR match_opcode=309 STR_VAR match_resource=ohdress END
+		BUT_ONLY
+	END // Compatibility with resurrection healing component
+	ACTION_IF FILE_EXISTS_IN_GAME ~BHAAL4AH.SPL~ THEN BEGIN
+		COPY_EXISTING ~BHAAL4AH.SPL~ ~override~
 			LPF DELETE_EFFECT INT_VAR match_opcode=309 STR_VAR match_resource=ohdress END
 		BUT_ONLY
 	END // Compatibility with resurrection healing component
@@ -73,9 +82,8 @@ GROUP @1
 	REQUIRE_PREDICATE GAME_IS ~bgee eet~ @13
 	COPY_EXISTING ~ITEMEXCL.2DA~ ~override~
 		COUNT_2DA_ROWS 2 rowcount
-		PATCH_IF (RESOURCE_CONTAINS ITEMEXCL.2da CLCK31 = 0) BEGIN
-			INSERT_2DA_ROW rowcount 2 ~CLCK31 1~
-		END
+		INSERT_2DA_ROW rowcount 2 ~CLCK31 1~
+		UNLESS ~CLCK31~ // Only if it's not already there
 	BUT_ONLY // Add Improved Cloak of Protection +2 to item exclusion list
 	EXTEND_TOP ~BPPLOT.BCS~ ~jtweaks/resource/BPPlotPatch.baf~ // BP script removes itself if not in BP area
 	COPY_EXISTING ~BPGIAFIR.BCS~ ~override~
@@ -83,6 +91,9 @@ GROUP @1
 			REPLACE_TEXTUALLY ~\(SetGlobalTimer("GIANT_POTION","LOCALS",ONE_ROUND)[%TAB% %LNL%%MNL%%WNL%]+\)UseItem("POTN27",NearestEnemyOf(Myself))~ ~\1 UseItem("POTN52",Myself)~
 		END
 	BUT_ONLY // Hogarl uses the right potion when he's hurt
+	COPY_EXISTING ~BPXITH03.STO~ ~override~
+		LPF REPLACE_STORE_ITEM INT_VAR number_in_stock=1 charges1=8 charges2=0 charges3=0 STR_VAR old_item=RING05 new_item=RING05 END
+	BUT_ONLY // Correct number of charges on the Sandthief's Ring at tier 3
 
 //
 //
@@ -100,8 +111,8 @@ GROUP @1
 			SET_2DA_ENTRY 0 2 3 3
 		END
 		FOR (row = 1; row < rowcount; ++row) BEGIN
-			REMOVE_2DA_ROW row 3
-		END
+			REMOVE_2DA_ROW 1 3
+		END // Index of remaining rows changes when operation performed.
 	BUT_ONLY // Make one good row, clear all others
 
 //
@@ -151,52 +162,84 @@ GROUP @1
 
 BEGIN @7000 DESIGNATED 70
 GROUP @1
-	COPY_EXISTING ~SPWI415.SPL~ ~override/WAND09.SPL~ // Polymorph Other as template
-		LPF DELETE_EFFECT END
-		LPF ALTER_SPELL_HEADER INT_VAR projectile=1 END // No projectile
-		WRITE_LONG 0x8 0xFFFFFFFF // No name
-	BUT_ONLY
-	COPY_EXISTING ~WAND09.ITM~ ~override~ // Wand of Polymorphing
-		LPF ITEM_EFFECT_TO_SPELL INT_VAR type=3 header=0 STR_VAR new_itm_spl=~WAND09.SPL~ END
-		LPF DELETE_EFFECT END // Copy effects to spell, then remove originals
-		LPF ADD_ITEM_EFFECT INT_VAR opcode=146 target=2 power=0 timing=1 parameter1=10 parameter2=2 resist_dispel=0 duration=0 probability1=100 probability2=0 dicenumber=0 dicesize=0 savingthrow=0 savebonus=0 special=0 type=3 STR_VAR resource=WAND09 END
-	BUT_ONLY // New "cast spell" effect, so specific immunity can work
+	OUTER_SET WandSubspell = 0
+	OUTER_SET BoltSubspell = 0
+	OUTER_SET SphereSubspell = 0
 
-	COPY_EXISTING ~SPWI415.SPL~ ~override/BOLT05.SPL~ // Polymorph Other as template
-		LPF DELETE_EFFECT END
-		LPF ALTER_SPELL_HEADER INT_VAR projectile=1 END // No projectile
-		WRITE_LONG 0x8 0xFFFFFFFF // No name
-	BUT_ONLY
-	COPY_EXISTING ~BOLT05.ITM~ ~override~ // Bolt of Polymorphing
-		LPF ITEM_EFFECT_TO_SPELL INT_VAR type=2 header=0 STR_VAR new_itm_spl=~BOLT05.ITM~ END
-		LPF DELETE_EFFECT END // Copy effects to spell, then remove originals
-		LPF ADD_ITEM_EFFECT INT_VAR opcode=146 target=2 power=0 timing=1 parameter1=10 parameter2=2 resist_dispel=0 duration=0 probability1=100 probability2=0 dicenumber=0 dicesize=0 savingthrow=0 savebonus=0 special=0 type=2 STR_VAR resource=BOLT05 END
-	BUT_ONLY // New "cast spell" effect, so specific immunity can work
+	ACTION_IF FILE_EXISTS_IN_GAME ~WAND09.SPL~ THEN BEGIN
+		OUTER_SET WandSubspell = 1
+		ACTION_IF (debug_messages) BEGIN
+			PRINT ~Wand of Polymorphing subspell already exists. Skipping.~
+		END
+	END ELSE BEGIN
+		COPY_EXISTING ~SPWI415.SPL~ ~override/WAND09.SPL~
+			LPF DELETE_EFFECT END
+			LPF ALTER_SPELL_HEADER INT_VAR projectile=1 END
+			WRITE_LONG 0x8 0xFFFFFFFF // No name
+		BUT_ONLY // Copy Polymorph Other as template, remove effects
+		COPY_EXISTING ~WAND09.ITM~ ~override~ // Wand of Polymorphing
+			LPF ITEM_EFFECT_TO_SPELL INT_VAR type=3 header=0 STR_VAR new_itm_spl=WAND09.SPL END
+			LPF DELETE_EFFECT END // Move effects to subspell
+			LPF ADD_ITEM_EFFECT INT_VAR opcode=146 target=2 power=0 timing=1 parameter1=10 parameter2=2 resist_dispel=0 duration=0 probability1=100 probability2=0 dicenumber=0 dicesize=0 savingthrow=0 savebonus=0 special=0 type=3 STR_VAR resource=WAND09 END
+		BUT_ONLY // New "cast spell" effect, so specific immunity can work
+	END
 
-	COPY_EXISTING ~SPWI711.SPL~ ~override/SPWI711P.SPL~
-		LPF DELETE_EFFECT INT_VAR match_probability1=20 END
-		LPF DELETE_EFFECT INT_VAR match_probability1=30 END
-		LPF DELETE_EFFECT INT_VAR match_probability1=40 END
-		LPF DELETE_EFFECT INT_VAR match_probability1=50 END
-		LPF DELETE_EFFECT INT_VAR match_probability1=60 END
-		LPF DELETE_EFFECT INT_VAR match_probability1=70 END
-		LPF DELETE_EFFECT INT_VAR match_probability1=80 END
-		LPF DELETE_EFFECT INT_VAR match_probability1=90 END
-		LPF DELETE_EFFECT INT_VAR match_probability1=100 END
-		LPF ALTER_SPELL_EFFECT INT_VAR probability1=100 power=0 END //Isolate polymorph, make it 100%. Level zero so it won't run into deflection/turning effects.
-		LPF ALTER_SPELL_HEADER INT_VAR projectile=1 END // No projectile
-		WRITE_LONG 0x8 0xFFFFFFFF // No name
-	BUT_ONLY
-	COPY_EXISTING ~SPWI711.SPL~ ~override~ // Sphere of Chaos
-		LPF DELETE_EFFECT INT_VAR match_probability1=10 END // Remove original polymorph effect
-		LPF ADD_SPELL_EFFECT INT_VAR opcode=146 target=2 power=7 timing=1 parameter1=0 parameter2=1 resist_dispel=0 duration=0 probability1=10 probability2=0 dicenumber=0 dicesize=0 savingthrow=0 savebonus=0 special=0 insert_point=0 STR_VAR resource=SPWI711P END
-	BUT_ONLY // New "cast spell" effect. Level 7 so spell level immunity works.
+	ACTION_IF FILE_EXISTS_IN_GAME ~BOLT05.SPL~ THEN BEGIN
+		OUTER_SET BoltSubspell = 1
+		ACTION_IF (debug_messages) BEGIN
+			PRINT ~Bolt of Polymorphing subspell already exists. Skipping.~
+		END
+	END ELSE BEGIN
+		COPY_EXISTING ~SPWI415.SPL~ ~override/BOLT05.SPL~
+			LPF DELETE_EFFECT END
+			LPF ALTER_SPELL_HEADER INT_VAR projectile=1 END
+			WRITE_LONG 0x8 0xFFFFFFFF
+		BUT_ONLY// Copy Polymorph Other as template, remove effects
+		COPY_EXISTING ~BOLT05.ITM~ ~override~ // Bolt of Polymorphing
+			LPF ITEM_EFFECT_TO_SPELL INT_VAR type=2 header=0 STR_VAR new_itm_spl=BOLT05.ITM END
+			LPF DELETE_EFFECT END // Move effects to subspell
+			LPF ADD_ITEM_EFFECT INT_VAR opcode=146 target=2 power=0 timing=1 parameter1=10 parameter2=2 resist_dispel=0 duration=0 probability1=100 probability2=0 dicenumber=0 dicesize=0 savingthrow=0 savebonus=0 special=0 type=2 STR_VAR resource=BOLT05 END
+		BUT_ONLY // New "cast spell" effect, so specific immunity can work
+	END
 
-	COPY_EXISTING_REGEXP ".*\.ITM" ~override~ ".*\.SPL" ~override~
-		LPF CLONE_EFFECT INT_VAR silent=1 match_opcode=206 STR_VAR match_resource=SPWI415 resource=WAND09 END // Specific immunity to wand polymorphs
-		LPF CLONE_EFFECT INT_VAR silent=1 match_opcode=206 STR_VAR match_resource=SPWI415 resource=BOLT05 END // Specific immunity to bolt polymorphs
+	ACTION_IF FILE_EXISTS_IN_GAME ~SPWI711P.SPL~ THEN BEGIN
+		OUTER_SET SphereSubspell = 1
+		ACTION_IF (debug_messages) BEGIN
+			PRINT ~Sphere of Chaos polymorph subspell already exists. Skipping.~
+		END
+	END ELSE BEGIN
+		COPY_EXISTING ~SPWI711.SPL~ ~override/SPWI711P.SPL~
+			LPF DELETE_EFFECT INT_VAR match_probability1=20 END
+			LPF DELETE_EFFECT INT_VAR match_probability1=30 END
+			LPF DELETE_EFFECT INT_VAR match_probability1=40 END
+			LPF DELETE_EFFECT INT_VAR match_probability1=50 END
+			LPF DELETE_EFFECT INT_VAR match_probability1=60 END
+			LPF DELETE_EFFECT INT_VAR match_probability1=70 END
+			LPF DELETE_EFFECT INT_VAR match_probability1=80 END
+			LPF DELETE_EFFECT INT_VAR match_probability1=90 END
+			LPF DELETE_EFFECT INT_VAR match_probability1=100 END
+			LPF ALTER_SPELL_EFFECT INT_VAR probability1=100 power=0 END
+			LPF ALTER_SPELL_HEADER INT_VAR projectile=1 END // No projectile
+			WRITE_LONG 0x8 0xFFFFFFFF // No name
+		BUT_ONLY // New subspell with only the polymorph effect
+		COPY_EXISTING ~SPWI711.SPL~ ~override~ // Sphere of Chaos
+			LPF DELETE_EFFECT INT_VAR match_probability1=10 END
+			LPF ADD_SPELL_EFFECT INT_VAR opcode=146 target=2 power=7 timing=1 parameter1=0 parameter2=1 resist_dispel=0 duration=0 probability1=10 probability2=0 dicenumber=0 dicesize=0 savingthrow=0 savebonus=0 special=0 insert_point=0 STR_VAR resource=SPWI711P END
+		BUT_ONLY // Replace polymorph effect with "cast spell" effect
+	END
+
+	COPY_EXISTING_REGEXP GLOB ".*\.ITM" ~override~ ".*\.SPL" ~override~
+		PATCH_IF (WandSubspell = 0) BEGIN
+			LPF CLONE_EFFECT INT_VAR silent=1 match_opcode=206 STR_VAR match_resource=SPWI415 resource=WAND09 END // Specific immunity to wand polymorphs
+		END
+		PATCH_IF (BoltSubspell = 0) BEGIN
+			LPF CLONE_EFFECT INT_VAR silent=1 match_opcode=206 STR_VAR match_resource=SPWI415 resource=BOLT05 END // Specific immunity to bolt polymorphs
+		END
 		LPF CLONE_EFFECT INT_VAR silent=1 match_opcode=206 STR_VAR match_resource=SPWM113 resource=SPWM183 END // Missing wild surge option
-		LPF ALTER_EFFECT INT_VAR silent=1 match_opcode=206 STR_VAR match_resource=SPWI711 resource=SPWI711P END // Specific immunity to sphere polymorphs
+		PATCH_IF (SphereSubspell = 0) BEGIN
+			LPF ALTER_EFFECT INT_VAR silent=1 match_opcode=206 STR_VAR match_resource=SPWI711 resource=SPWI711P END // Specific immunity to sphere polymorphs
+		END
+		IF ~SPWI415~ // Wrapper: skip unless Polymorph Other is referenced
 	BUT_ONLY
 
 //
@@ -205,7 +248,7 @@ GROUP @1
 //
 //
 
-BEGIN @8100 DESIGNATED 81
+BEGIN @8100 DESIGNATED 81 // Both druid and mage forms
 SUBCOMPONENT @8000
 GROUP @1
 REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
@@ -213,9 +256,9 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 		COPY_EXISTING ~SPCL612.SPL~ ~override~ // Druid wolf form
 			LPF ALTER_EFFECT INT_VAR match_opcode=135 STR_VAR match_resource=WOLFCHAR resource=PLYWOLF END
 		BUT_ONLY // Use the right polymorph target
-		COPY_EXISTING ~WOLFM.ITM~ ~override~ // Add +1 damage for consistency with mage wolf form.
+		COPY_EXISTING ~WOLFM.ITM~ ~override~
 			LPF ALTER_ITEM_HEADER INT_VAR header_type=1 damage_bonus=1 END
-		BUT_ONLY
+		BUT_ONLY // Add +1 damage for consistency with mage wolf form.
 
 		COPY_EXISTING ~brbrp1.ITM~ ~override~ // Greater Werewolf form
 			LPF ADD_ITEM_EQEFFECT INT_VAR opcode=98 target=1 parameter1=2 parameter2=3 timing=2 END
@@ -266,6 +309,23 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 			SAY DESC @8022
 		BUT_ONLY // Giant spider shapeshift
 		// No high-level druid forms exist. Skip Shapechange forms.
+
+		COPY_EXISTING ~PLYBEAR1.ITM~ ~override~
+		              ~PLYBEAR2.ITM~ ~override~
+		              ~WOLFM.ITM~ ~override~
+		              ~PLYSPID2.ITM~ ~override~
+		              ~PLYWYVRN.ITM~ ~override~
+		              ~PLYSALA.ITM~ ~override~
+		              ~BRBRP.ITM~ ~override~
+		              ~BRBRP1.ITM~ ~override~
+		              ~PLYFLIND.ITM~ ~override~
+		              ~PLYMSTAR.ITM~ ~override~
+		              ~PLYSPID.ITM~ ~override~
+		              ~PLYJELLY.ITM~ ~override~
+		              ~PLYWOLF1.ITM~ ~override~
+			WRITE_LONG 0x18 (THIS BOR BIT13)
+		BUT_ONLY // Add "forbid off-hand weapon" flag
+
 	END ELSE BEGIN // BGEE and BG2EE polymorph handling differs; split.
 		ACTION_CLEAR_ARRAY Imm2Effs
 		ACTION_CLEAR_ARRAY Imm3Effs
@@ -292,7 +352,7 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 			LPF ALTER_EFFECT INT_VAR match_opcode=111 STR_VAR match_resource=PLYBEAR2 resource=PLYBEAR1 END
 		BUT_ONLY // Use a different bear from SPWI497 brown bear shapeshift
 
-		COPY_EXISTING ~IMMUNE2.ITM~ ~override~ // Immunity to normal and +1 weapons
+		COPY_EXISTING ~IMMUNE2.ITM~ ~override~ // Immunity to weapons up to +1
 			READ_LONG 0x6A ofsEf
 			READ_SHORT 0x70 numEf
 			FOR (idx = 0; idx < numEf; ++idx) BEGIN
@@ -312,9 +372,9 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 				READ_LONG (ofsEf + 0x24 + (0x30 * idx)) savingthrow
 				READ_LONG (ofsEf + 0x28 + (0x30 * idx)) savebonus
 				READ_LONG (ofsEf + 0x2c + (0x30 * idx)) special
-				SPRINT $Imm2Effs(~%opcode%~ ~%target%~ ~%power%~ ~%parameter1%~ ~%parameter2%~ ~%timing%~ ~%resist_dispel%~ ~%duration%~ ~%probability1%~ ~%probability2%~ ~%resource%~ ~%dicenumber%~ ~%dicesize%~ ~%savingthrow%~ ~%savebonus%~ ~%special%~) ~%idx~
+				SPRINT $Imm2Effs(~%opcode%~ ~%target%~ ~%power%~ ~%parameter1%~ ~%parameter2%~ ~%timing%~ ~%resist_dispel%~ ~%duration%~ ~%probability1%~ ~%probability2%~ ~%resource%~ ~%dicenumber%~ ~%dicesize%~ ~%savingthrow%~ ~%savebonus%~ ~%special%~) ~%idx%~
 			END
-		BUT_ONLY // Copy all effects to an array for later use. Original unchanged.
+		BUT_ONLY // Copy all effects to an array for later use.
 
 		COPY_EXISTING ~IMMUNE3.ITM~ ~override~ // Immunity to weapons up to +2
 			READ_LONG 0x6A ofsEf
@@ -336,14 +396,14 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 				READ_LONG (ofsEf + 0x24 + (0x30 * idx)) savingthrow
 				READ_LONG (ofsEf + 0x28 + (0x30 * idx)) savebonus
 				READ_LONG (ofsEf + 0x2c + (0x30 * idx)) special
-				SPRINT $Imm3Effs(~%opcode%~ ~%target%~ ~%power%~ ~%parameter1%~ ~%parameter2%~ ~%timing%~ ~%resist_dispel%~ ~%duration%~ ~%probability1%~ ~%probability2%~ ~%resource%~ ~%dicenumber%~ ~%dicesize%~ ~%savingthrow%~ ~%savebonus%~ ~%special%~) ~%idx~
+				SPRINT $Imm3Effs(~%opcode%~ ~%target%~ ~%power%~ ~%parameter1%~ ~%parameter2%~ ~%timing%~ ~%resist_dispel%~ ~%duration%~ ~%probability1%~ ~%probability2%~ ~%resource%~ ~%dicenumber%~ ~%dicesize%~ ~%savingthrow%~ ~%savebonus%~ ~%special%~) ~%idx%~
 			END
-		BUT_ONLY // Copy all effects to an array for later use. Original unchanged.
+		BUT_ONLY // Copy all effects to an array for later use.
 
-		COPY_EXISTING ~AMUL22.ITM~ ~override~ // Copy the effect data for iron golem immunities
+		COPY_EXISTING ~AMUL22.ITM~ ~override~ // Iron golem immunity effects
 		              ~CLCK30.ITM~ ~override~ // This is a serious hack job.
-		              ~HELM06.ITM~ ~override~ // Combine four items worth of equip effects
-		              ~TROLLALL.ITM~ ~override~ // and remove the unwanted ones.
+		              ~HELM06.ITM~ ~override~ // Combine four items and
+		              ~TROLLALL.ITM~ ~override~ // remove the unwanted effects.
 			READ_LONG 0x6A ofsEf
 			READ_SHORT 0x70 numEf
 			FOR (idx = 0; idx < numEf; ++idx) BEGIN
@@ -370,7 +430,7 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 				              OR((opcode=267) AND
 				              ((parameter1=14043) OR (parameter1=1280)))
 				              OR ((opcode=142) AND (parameter2=87))) BEGIN
-					SPRINT $IronGolEffs(~%opcode%~ ~%target%~ ~%power%~ ~%parameter1%~ ~%parameter2%~ ~%timing%~ ~%resist_dispel%~ ~%duration%~ ~%probability1%~ ~%probability2%~ ~%resource%~ ~%dicenumber%~ ~%dicesize%~ ~%savingthrow%~ ~%savebonus%~ ~%special%~) ~%idx~
+					SPRINT $IronGolEffs(~%opcode%~ ~%target%~ ~%power%~ ~%parameter1%~ ~%parameter2%~ ~%timing%~ ~%resist_dispel%~ ~%duration%~ ~%probability1%~ ~%probability2%~ ~%resource%~ ~%dicenumber%~ ~%dicesize%~ ~%savingthrow%~ ~%savebonus%~ ~%special%~) ~%idx%~
 				END
 			END
 		BUT_ONLY // Iron golem immunities, now in an array.
@@ -378,7 +438,7 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 		COPY_EXISTING ~WOLFGR.ITM~ ~override~ // Greater wolfwere form
 			LPF DELETE_EFFECT INT_VAR match_opcode=292 END
 			PHP_EACH Imm2Effs AS effs => index BEGIN
-				LPF ADD_ITEM_EQEFFECT INT_VAR opcode=effs_0 target=effs_1 power=effs_2 parameter1=effs_3 parameter2=effs_4 timing=effs_5 resist_dispel=effs_6 duration=effs_7 probability1=effs_8 probability2=effs_9 dicenumber=effs_11 dicesize=effs_12 savingthrow=effs_13 savebonus=effs_14 special=effs_15 STR_VAR resource=EVAL ~%effs_10%~ END
+				LPF ADD_ITEM_EQEFFECT INT_VAR opcode=effs_0 target=effs_1 power=effs_2 parameter1=effs_3 parameter2=effs_4 timing=effs_5 resist_dispel=effs_6 duration=effs_7 probability1=effs_8 probability2=effs_9 dicenumber=effs_11 dicesize=effs_12 savingthrow=effs_13 savebonus=effs_14 special=effs_15 STR_VAR resource=~%effs_10%~ END
 			END
 		BUT_ONLY // Replace weapon immunity effect (up to +1) with full array.
 
@@ -387,13 +447,13 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 			      ~cdgoliro.ITM~ ~override~ // Iron golem form
 			LPF DELETE_EFFECT INT_VAR match_opcode=120 END
 			PHP_EACH Imm3Effs AS effs => index BEGIN
-				LPF ADD_ITEM_EQEFFECT INT_VAR opcode=effs_0 target=effs_1 power=effs_2 parameter1=effs_3 parameter2=effs_4 timing=effs_5 resist_dispel=effs_6 duration=effs_7 probability1=effs_8 probability2=effs_9 dicenumber=effs_11 dicesize=effs_12 savingthrow=effs_13 savebonus=effs_14 special=effs_15 STR_VAR resource=EVAL ~%effs_10%~ END
+				LPF ADD_ITEM_EQEFFECT INT_VAR opcode=effs_0 target=effs_1 power=effs_2 parameter1=effs_3 parameter2=effs_4 timing=effs_5 resist_dispel=effs_6 duration=effs_7 probability1=effs_8 probability2=effs_9 dicenumber=effs_11 dicesize=effs_12 savingthrow=effs_13 savebonus=effs_14 special=effs_15 STR_VAR resource=~%effs_10%~ END
 			END
 		BUT_ONLY // Replace weapon immunity effect (up to +2) with full array.
 
 		COPY_EXISTING ~cdgoliro.ITM~ ~override~ // Iron golem form
 			PHP_EACH IronGolEffs AS effs => index BEGIN
-				LPF ADD_ITEM_EQEFFECT INT_VAR opcode=effs_0 target=effs_1 power=effs_2 parameter1=effs_3 parameter2=effs_4 timing=effs_5 resist_dispel=effs_6 duration=effs_7 probability1=effs_8 probability2=effs_9 dicenumber=effs_11 dicesize=effs_12 savingthrow=effs_13 savebonus=effs_14 special=effs_15 STR_VAR resource=EVAL ~%effs_10%~ END
+				LPF ADD_ITEM_EQEFFECT INT_VAR opcode=effs_0 target=effs_1 power=effs_2 parameter1=effs_3 parameter2=effs_4 timing=effs_5 resist_dispel=effs_6 duration=effs_7 probability1=effs_8 probability2=effs_9 dicenumber=effs_11 dicesize=effs_12 savingthrow=effs_13 savebonus=effs_14 special=effs_15 STR_VAR resource=~%effs_10%~ END
 			END
 		BUT_ONLY // Apply all those missing golem immunities
 
@@ -474,7 +534,7 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 		BUT_ONLY // Mage earth elemental form
 	END
 
-BEGIN @8200 DESIGNATED 82
+BEGIN @8200 DESIGNATED 82 // Druid forms only
 SUBCOMPONENT @8000
 GROUP @1
 REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
@@ -482,9 +542,9 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 		COPY_EXISTING ~SPCL612.SPL~ ~override~ // Druid wolf form
 			LPF ALTER_EFFECT INT_VAR match_opcode=135 STR_VAR match_resource=WOLFCHAR resource=PLYWOLF END
 		BUT_ONLY // Use the right polymorph target
-		COPY_EXISTING ~WOLFM.ITM~ ~override~ // Add +1 damage for consistency with mage wolf form.
+		COPY_EXISTING ~WOLFM.ITM~ ~override~
 			LPF ALTER_ITEM_HEADER INT_VAR header_type=1 damage_bonus=1 END
-		BUT_ONLY
+		BUT_ONLY // Add +1 damage for consistency with mage wolf form.
 
 		COPY_EXISTING ~brbrp1.ITM~ ~override~ // Greater Werewolf form
 			LPF ADD_ITEM_EQEFFECT INT_VAR opcode=98 target=1 parameter1=2 parameter2=3 timing=2 END
@@ -524,6 +584,18 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 			SAY DESC @8017
 		BUT_ONLY // Greater werewolf shapeshift
 		// No high-level druid forms exist.
+
+		COPY_EXISTING ~PLYBEAR1.ITM~ ~override~
+		              ~PLYBEAR2.ITM~ ~override~
+		              ~WOLFM.ITM~ ~override~
+		              ~PLYSPID2.ITM~ ~override~
+		              ~PLYWYVRN.ITM~ ~override~
+		              ~PLYSALA.ITM~ ~override~
+		              ~BRBRP.ITM~ ~override~
+		              ~BRBRP1.ITM~ ~override~
+			WRITE_BYTE 0x18 (THIS BOR BIT13)
+		BUT_ONLY // Add "forbid off-hand weapon" flag
+
 	END ELSE BEGIN // BGEE and BG2EE polymorph handling differs; split.
 		COPY_EXISTING ~PLYBEAR1.ITM~ ~override~ // Bear shapeshifts
 			LPF ALTER_EFFECT INT_VAR match_opcode=135 STR_VAR match_resource=BEARBR resource=BEARBL END
@@ -579,7 +651,7 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 		BUT_ONLY // Druid earth elemental form
 	END
 
-BEGIN @8300 DESIGNATED 83
+BEGIN @8300 DESIGNATED 83 // Mage forms only
 SUBCOMPONENT @8000
 GROUP @1
 REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
@@ -605,6 +677,17 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 			SAY DESC @8022
 		BUT_ONLY // Giant spider shapeshift
 		// Skip Shapechange forms.
+
+		COPY_EXISTING ~PLYFLIND.ITM~ ~override~
+		              ~PLYMSTAR.ITM~ ~override~
+		              ~PLYSPID.ITM~ ~override~
+		              ~PLYJELLY.ITM~ ~override~
+		              ~PLYWOLF1.ITM~ ~override~
+		              ~PLYBEAR1.ITM~ ~override~
+		              ~PLYBEAR2.ITM~ ~override~
+			WRITE_BYTE 0x18 (THIS BOR BIT13)
+		BUT_ONLY // Add "forbid off-hand weapon" flag
+
 	END ELSE BEGIN // BGEE and BG2EE polymorph handling differs; split.
 		ACTION_CLEAR_ARRAY Imm2Effs
 		ACTION_CLEAR_ARRAY Imm3Effs
@@ -626,7 +709,7 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 			LPF ALTER_EFFECT INT_VAR match_opcode=111 STR_VAR match_resource=PLYBEAR2 resource=PLYBEAR1 END
 		BUT_ONLY // Use a different bear from SPWI497 brown bear shapeshift
 
-		COPY_EXISTING ~IMMUNE2.ITM~ ~override~ // Immunity to normal and +1 weapons
+		COPY_EXISTING ~IMMUNE2.ITM~ ~override~ // Immunity to weapons up to +1
 			READ_LONG 0x6A ofsEf
 			READ_SHORT 0x70 numEf
 			FOR (idx = 0; idx < numEf; ++idx) BEGIN
@@ -646,7 +729,7 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 				READ_LONG (ofsEf + 0x24 + (0x30 * idx)) savingthrow
 				READ_LONG (ofsEf + 0x28 + (0x30 * idx)) savebonus
 				READ_LONG (ofsEf + 0x2c + (0x30 * idx)) special
-				SPRINT $Imm2Effs(~%opcode%~ ~%target%~ ~%power%~ ~%parameter1%~ ~%parameter2%~ ~%timing%~ ~%resist_dispel%~ ~%duration%~ ~%probability1%~ ~%probability2%~ ~%resource%~ ~%dicenumber%~ ~%dicesize%~ ~%savingthrow%~ ~%savebonus%~ ~%special%~) ~%idx~
+				SPRINT $Imm2Effs(~%opcode%~ ~%target%~ ~%power%~ ~%parameter1%~ ~%parameter2%~ ~%timing%~ ~%resist_dispel%~ ~%duration%~ ~%probability1%~ ~%probability2%~ ~%resource%~ ~%dicenumber%~ ~%dicesize%~ ~%savingthrow%~ ~%savebonus%~ ~%special%~) ~%idx%~
 			END
 		BUT_ONLY // Copy all effects to an array for later use. Original unchanged.
 
@@ -670,14 +753,14 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 				READ_LONG (ofsEf + 0x24 + (0x30 * idx)) savingthrow
 				READ_LONG (ofsEf + 0x28 + (0x30 * idx)) savebonus
 				READ_LONG (ofsEf + 0x2c + (0x30 * idx)) special
-				SPRINT $Imm3Effs(~%opcode%~ ~%target%~ ~%power%~ ~%parameter1%~ ~%parameter2%~ ~%timing%~ ~%resist_dispel%~ ~%duration%~ ~%probability1%~ ~%probability2%~ ~%resource%~ ~%dicenumber%~ ~%dicesize%~ ~%savingthrow%~ ~%savebonus%~ ~%special%~) ~%idx~
+				SPRINT $Imm3Effs(~%opcode%~ ~%target%~ ~%power%~ ~%parameter1%~ ~%parameter2%~ ~%timing%~ ~%resist_dispel%~ ~%duration%~ ~%probability1%~ ~%probability2%~ ~%resource%~ ~%dicenumber%~ ~%dicesize%~ ~%savingthrow%~ ~%savebonus%~ ~%special%~) ~%idx%~
 			END
 		BUT_ONLY // Copy all effects to an array for later use. Original unchanged.
 
-		COPY_EXISTING ~AMUL22.ITM~ ~override~ // Copy the effect data for iron golem immunities
+		COPY_EXISTING ~AMUL22.ITM~ ~override~ // Iron golem immunity effects
 		              ~CLCK30.ITM~ ~override~ // This is a serious hack job.
-		              ~HELM06.ITM~ ~override~ // Combine four items worth of equip effects
-		              ~TROLLALL.ITM~ ~override~ // and remove the unwanted ones.
+		              ~HELM06.ITM~ ~override~ // Combine four items and
+		              ~TROLLALL.ITM~ ~override~ // remove the unwanted effects.
 			READ_LONG 0x6A ofsEf
 			READ_SHORT 0x70 numEf
 			FOR (idx = 0; idx < numEf; ++idx) BEGIN
@@ -697,15 +780,14 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 				READ_LONG (ofsEf + 0x24 + (0x30 * idx)) savingthrow
 				READ_LONG (ofsEf + 0x28 + (0x30 * idx)) savebonus
 				READ_LONG (ofsEf + 0x2c + (0x30 * idx)) special
-				PATCH_IF NOT ((opcode=7) OR
-				              (opcode=98) OR
-				              (opcode=126) OR
-				              (opcode=135) OR
-				              (opcode=144) OR
-				              ((opcode=101) AND ((parameter2=210) OR (parameter2=45))) OR
-				              ((opcode=267) AND ((parameter1=14043) OR (parameter1=1280))) OR
-				              ((opcode=142) AND (parameter2=87))) BEGIN
-					SPRINT $IronGolEffs(~%opcode%~ ~%target%~ ~%power%~ ~%parameter1%~ ~%parameter2%~ ~%timing%~ ~%resist_dispel%~ ~%duration%~ ~%probability1%~ ~%probability2%~ ~%resource%~ ~%dicenumber%~ ~%dicesize%~ ~%savingthrow%~ ~%savebonus%~ ~%special%~) ~%idx~
+				PATCH_IF NOT ((opcode=7) OR (opcode=98) OR (opcode=126) OR
+				              (opcode=135) OR (opcode=144) OR
+				              ((opcode=101) AND
+				              ((parameter2=210) OR (parameter2=45))) OR
+				              ((opcode=267) AND
+				              ((parameter1=14043) OR (parameter1=1280)))
+				              OR ((opcode=142) AND (parameter2=87))) BEGIN
+					SPRINT $IronGolEffs(~%opcode%~ ~%target%~ ~%power%~ ~%parameter1%~ ~%parameter2%~ ~%timing%~ ~%resist_dispel%~ ~%duration%~ ~%probability1%~ ~%probability2%~ ~%resource%~ ~%dicenumber%~ ~%dicesize%~ ~%savingthrow%~ ~%savebonus%~ ~%special%~) ~%idx%~
 				END
 			END
 		BUT_ONLY // Iron golem immunities, now in an array.
@@ -713,7 +795,7 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 		COPY_EXISTING ~WOLFGR.ITM~ ~override~ // Greater wolfwere form
 			LPF DELETE_EFFECT INT_VAR match_opcode=292 END
 			PHP_EACH Imm2Effs AS effs => index BEGIN
-				LPF ADD_ITEM_EQEFFECT INT_VAR opcode=effs_0 target=effs_1 power=effs_2 parameter1=effs_3 parameter2=effs_4 timing=effs_5 resist_dispel=effs_6 duration=effs_7 probability1=effs_8 probability2=effs_9 dicenumber=effs_11 dicesize=effs_12 savingthrow=effs_13 savebonus=effs_14 special=effs_15 STR_VAR resource=EVAL ~%effs_10%~ END
+				LPF ADD_ITEM_EQEFFECT INT_VAR opcode=effs_0 target=effs_1 power=effs_2 parameter1=effs_3 parameter2=effs_4 timing=effs_5 resist_dispel=effs_6 duration=effs_7 probability1=effs_8 probability2=effs_9 dicenumber=effs_11 dicesize=effs_12 savingthrow=effs_13 savebonus=effs_14 special=effs_15 STR_VAR resource=~%effs_10%~ END
 			END
 		BUT_ONLY // Replace weapon immunity effect (up to +1) with full array.
 
@@ -722,13 +804,13 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 			      ~cdgoliro.ITM~ ~override~ // Iron golem form
 			LPF DELETE_EFFECT INT_VAR match_opcode=120 END
 			PHP_EACH Imm3Effs AS effs => index BEGIN
-				LPF ADD_ITEM_EQEFFECT INT_VAR opcode=effs_0 target=effs_1 power=effs_2 parameter1=effs_3 parameter2=effs_4 timing=effs_5 resist_dispel=effs_6 duration=effs_7 probability1=effs_8 probability2=effs_9 dicenumber=effs_11 dicesize=effs_12 savingthrow=effs_13 savebonus=effs_14 special=effs_15 STR_VAR resource=EVAL ~%effs_10%~ END
+				LPF ADD_ITEM_EQEFFECT INT_VAR opcode=effs_0 target=effs_1 power=effs_2 parameter1=effs_3 parameter2=effs_4 timing=effs_5 resist_dispel=effs_6 duration=effs_7 probability1=effs_8 probability2=effs_9 dicenumber=effs_11 dicesize=effs_12 savingthrow=effs_13 savebonus=effs_14 special=effs_15 STR_VAR resource=~%effs_10%~ END
 			END
 		BUT_ONLY // Replace weapon immunity effect (up to +2) with full array.
 
 		COPY_EXISTING ~cdgoliro.ITM~ ~override~ // Iron golem form
 			PHP_EACH IronGolEffs AS effs => index BEGIN
-				LPF ADD_ITEM_EQEFFECT INT_VAR opcode=effs_0 target=effs_1 power=effs_2 parameter1=effs_3 parameter2=effs_4 timing=effs_5 resist_dispel=effs_6 duration=effs_7 probability1=effs_8 probability2=effs_9 dicenumber=effs_11 dicesize=effs_12 savingthrow=effs_13 savebonus=effs_14 special=effs_15 STR_VAR resource=EVAL ~%effs_10%~ END
+				LPF ADD_ITEM_EQEFFECT INT_VAR opcode=effs_0 target=effs_1 power=effs_2 parameter1=effs_3 parameter2=effs_4 timing=effs_5 resist_dispel=effs_6 duration=effs_7 probability1=effs_8 probability2=effs_9 dicenumber=effs_11 dicesize=effs_12 savingthrow=effs_13 savebonus=effs_14 special=effs_15 STR_VAR resource=~%effs_10%~ END
 			END
 		BUT_ONLY // Apply all those missing golem immunities
 
@@ -829,6 +911,20 @@ GROUP @1
 REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 	ACTION_CLEAR_ARRAY fireshields
 	OUTER_SET fsid = 0
+	OUTER_SET OTR5 = IDS_OF_SYMBOL (~MISSILE~ ~OneTarget_Range_05~)
+	OUTER_SET OTR7 = IDS_OF_SYMBOL (~MISSILE~ ~OneTarget_Range_07~)
+	OUTER_SET OTR10 = IDS_OF_SYMBOL (~MISSILE~ ~OneTarget_Range_10~)
+	// Needed due to BGEE/BG2EE differences. Old code used BG2EE values.
+	ACTION_IF (OTR5 < 0) BEGIN
+		OUTER_SET OTR5 = IDS_OF_SYMBOL (~PROJECTL~ ~RANGE05~) + 1
+	END
+	ACTION_IF (OTR7 < 0) BEGIN
+		OUTER_SET OTR7 = IDS_OF_SYMBOL (~PROJECTL~ ~RANGE07~) + 1
+	END
+	ACTION_IF (OTR10 < 0) BEGIN
+		OUTER_SET OTR10 = IDS_OF_SYMBOL (~PROJECTL~ ~RANGE10~) + 1
+	END
+	// Backup plan if MISSILE.IDS can't be read. Not needed with WeiDU 248 or newer.
 
 	COPY_EXISTING_REGEXP GLOB ~^.+\.SPL$~ ~override~
 		READ_LONG 0x64 ofsAb
@@ -836,7 +932,7 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 		FOR (idx = 0; idx < numAb; ++idx) BEGIN
 			SET ofsProj = ofsAb + 0x26 + (idx * 40)
 			READ_SHORT ofsProj proj
-			PATCH_IF ((343 < proj) AND (proj < 347)) BEGIN
+			PATCH_IF ((proj = OTR5) OR (proj = OTR7) OR (proj = OTR10)) BEGIN
 				SPRINT $fireshields(~%fsid%~) ~%SOURCE_RES%~
 				SET fsid = fsid + 1
 				SET idx = numAb
@@ -844,19 +940,25 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
 		END
 	BUT_ONLY // First pass: find the fireshields, make an array.
 
-	COPY_EXISTING_REGEXP GLOB ~^.+\.SPL$~ ~override~
-		READ_LONG 0x64 ofsAb
-		READ_SHORT 0x68 numAb
-		FOR (idx = 0; idx < numAb; ++idx) BEGIN
-			SET ofsProj = ofsAb + 0x26 + (idx * 40)
-			READ_SHORT ofsProj proj
-			PATCH_IF ((343 < proj) AND (proj < 347)) BEGIN
-				PHP_EACH fireshields AS index => fsref BEGIN
-					LPF ADD_SPELL_EFFECT INT_VAR opcode=206 target=1 timing=10 duration=1 header=idx+1 STR_VAR resource=EVAL "%fsref%" END
+	ACTION_IF (debug_messages) BEGIN
+		PRINT ~%fsid% fireshields found. Patching spells.~ // Debug/status message
+	END
+
+	ACTION_PHP_EACH fireshields AS index1 => spell BEGIN
+		COPY_EXISTING ~%spell%.SPL~ ~override~
+			READ_LONG 0x64 ofsAb
+			READ_SHORT 0x68 numAb
+			FOR (idx = 0; idx < numAb; ++idx) BEGIN
+				SET ofsProj = ofsAb + 0x26 + (idx * 40)
+				READ_SHORT ofsProj proj
+				PATCH_IF ((proj = OTR5) OR (proj = OTR7) OR (proj = OTR10)) BEGIN
+					PHP_EACH fireshields AS index2 => fsref BEGIN
+						LPF ADD_SPELL_EFFECT INT_VAR opcode=206 target=1 timing=10 duration=1 header=idx+1 STR_VAR resource=~%fsref%~ END
+					END
 				END
 			END
-		END
-	BUT_ONLY // Second pass: each fireshield hit gives caster 1-tick immunity to all fireshields
+		BUT_ONLY // Each hit grants 1-tick immunity to all fireshields
+	END // Since we already know which spells are fireshields, copy only those.
 
 //
 //
@@ -936,9 +1038,12 @@ GROUP @2
 BEGIN @17000 DESIGNATED 170
 GROUP @2
 REQUIRE_PREDICATE GAME_IS ~bg2ee eet~ @11
+	OUTER_SET solar = IDS_OF_SYMBOL (~RACE~ ~SOLAR~)
+	OUTER_SET dplan = IDS_OF_SYMBOL (~RACE~ ~DARKPLANATAR~)
+	// IDS check probably not strictly needed; RACE.IDS is the same between games.
 	COPY_EXISTING_REGEXP GLOB ~^.+\.CRE$~ ~override~
 		READ_BYTE 0x272 race
-		PATCH_IF (155 < race AND race < 160) BEGIN
+		PATCH_IF ((race >= solar) AND (race <= dplan)) BEGIN
 			READ_BYTE 0x234 level1
 			READ_BYTE 0x235 level2
 			READ_BYTE 0x273 class
@@ -947,13 +1052,13 @@ REQUIRE_PREDICATE GAME_IS ~bg2ee eet~ @11
 				WRITE_BYTE 0x235 25
 			END
 		END
-	BUT_ONLY // Celestials which are level 25 mages or level 25 clerics become 25/25 cleric/mages
+	BUT_ONLY // Changing pure clerics and pure mages to cleric/mages.
 
 	COPY_EXISTING ~DEVA.ITM~ ~override~
 	              ~PLANETAR.ITM~ ~override~
 		LPF CLONE_EFFECT INT_VAR match_opcode=58 parameter1=25 match_parameter2=131073 parameter2=131074 STR_VAR insert=last END
 		LPF DELETE_EFFECT INT_VAR multi_match=1 match_opcode=58 match_parameter2=131073 END
-	BUT_ONLY // Deva and planetar weapons dispel at level 25, but do so after all other effects. Death Ward will always protect you from one vorpal planetar hit.
+	BUT_ONLY // Dispel at level 25, moved to end.
 
 //
 //
@@ -997,10 +1102,10 @@ REQUIRE_PREDICATE GAME_IS ~bgee eet~ @13
 		OUTER_SPRINT death_gaze SPIN996
 	END ELSE BEGIN
 		OUTER_SPRINT death_gaze BGIN996
-	END
+	END // Spell codes for EET compatibility
 	COPY_EXISTING_REGEXP ".*\.ITM" ~override~ ".*\.SPL" ~override~
-		LPF CLONE_EFFECT INT_VAR silent=1 match_opcode=169 match_parameter2=51 opcode=206 parameter2=0 STR_VAR resource=~%death_gaze%~ END // Copy immunity to "dying" icon and convert to specific immunity
-	BUT_ONLY
+		LPF CLONE_EFFECT INT_VAR silent=1 match_opcode=169 match_parameter2=51 opcode=206 parameter2=0 STR_VAR resource=~%death_gaze%~ END
+	BUT_ONLY // Copy immunity to "dying" icon and convert to specific immunity.
 
 //
 //
@@ -1010,9 +1115,8 @@ REQUIRE_PREDICATE GAME_IS ~bgee eet~ @13
 
 BEGIN @20000 DESIGNATED 200
 GROUP @2
-	ACTION_FOR_EACH spell IN // Resistance spells
-		~SPCL721.SPL~ ~SPPR210.SPL~ ~SPPR306.SPL~ ~SPPR407.SPL~ ~SPPR730.SPL~ ~SPWI319.SPL~ ~SPWI320.SPL~ ~SPWI403.SPL~ ~SPWI418.SPL~ ~SPWI512.SPL~ ~SPWI517.SPL~ ~SPWI606.SPL~ ~SPWI702.SPL~ ~SPWI803.SPL~
-		BEGIN
+	ACTION_FOR_EACH spell IN ~SPCL721.SPL~ ~SPPR210.SPL~ ~SPPR306.SPL~ ~SPPR407.SPL~ ~SPPR730.SPL~ ~SPWI319.SPL~ ~SPWI320.SPL~ ~SPWI403.SPL~ ~SPWI418.SPL~ ~SPWI512.SPL~ ~SPWI517.SPL~ ~SPWI606.SPL~ ~SPWI702.SPL~ ~SPWI803.SPL~
+		BEGIN // Resistance spells
 		ACTION_IF FILE_EXISTS_IN_GAME ~%spell%~ THEN BEGIN
 			COPY_EXISTING ~%spell%~ ~override~
 				LPF ALTER_SPELL_EFFECT INT_VAR match_opcode=27 parameter2=0 END
@@ -1020,8 +1124,8 @@ GROUP @2
 				LPF ALTER_SPELL_EFFECT INT_VAR match_opcode=29 parameter2=0 END
 				LPF ALTER_SPELL_EFFECT INT_VAR match_opcode=30 parameter2=0 END
 				LPF ALTER_SPELL_EFFECT INT_VAR match_opcode=31 parameter2=0 END
-			BUT_ONLY END //Change elemental resistance effects to "increment" mode. Some were in "set" mode, which doesn't play well with shapeshifts.
-		END
+			BUT_ONLY END 
+		END // Change elemental resistance effects to "increment" mode.
 
 //
 //
@@ -1034,7 +1138,7 @@ GROUP @2
 	COPY_EXISTING_REGEXP GLOB ~^.+\.ITM$~ ~override~
 		LPF ALTER_EFFECT INT_VAR silent=1 check_globals=0 check_headers=1 header_type=1 match_opcode=13 match_timing=1 parameter2=4 END
 		LPF ALTER_EFFECT INT_VAR silent=1 check_globals=0 check_headers=1 header_type=2 match_opcode=13 match_timing=1 parameter2=4 END
-	BUT_ONLY // Replace instant exploding death with normal death on melee and ranged attacks.
+	BUT_ONLY
 
 //
 //
@@ -1045,40 +1149,40 @@ GROUP @2
 BEGIN @22000 DESIGNATED 220
 GROUP @2
 REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~#rdremov.SPL~ @12
-	ACTION_IF FILE_EXISTS_IN_GAME ~BHAAL4A.SPL~ THEN BEGIN
+	ACTION_IF ((FILE_EXISTS_IN_GAME ~BHAAL4A.SPL~) AND NOT (FILE_EXISTS_IN_GAME ~BHAAL4AH.SPL~)) THEN BEGIN
 		COPY_EXISTING ~BHAAL4AA.SPL~ ~override/BHAAL4AH.SPL~
 			LPF DELETE_EFFECT INT_VAR match_opcode=32 END
 			LPF DELETE_EFFECT INT_VAR match_opcode=326 END
-		BUT_ONLY // Copy payload spell, remove raise effect and #rdremov casting
-		COPY_EXISTING ~BHAAL4A.SPL~ ~override~ // ToB Bhaal power resurrection. Not used in vanilla game.
+		BUT_ONLY // Create healing-only subspell
+		COPY_EXISTING ~BHAAL4A.SPL~ ~override~
 			LPF CLONE_EFFECT INT_VAR match_opcode=326 parameter2=113 STR_VAR match_resource=BHAAL4AA resource=BHAAL4AH insert=first END
 			LPF DELETE_EFFECT INT_VAR match_opcode=324 END
 		BUT_ONLY // Cast new subspell on living targets. Remove immunity message.
-	END
-	ACTION_IF FILE_EXISTS_IN_GAME ~SPPR712.SPL~ THEN BEGIN
+	END // ToB Bhaal power resurrection. Not used in vanilla game.
+	ACTION_IF ((FILE_EXISTS_IN_GAME ~SPPR712.SPL~) AND NOT (FILE_EXISTS_IN_GAME ~SPPR712H.SPL~)) THEN BEGIN
 		COPY_EXISTING ~SPPR712A.SPL~ ~override/SPPR712H.spl~
 			LPF DELETE_EFFECT INT_VAR match_opcode=32 END
 			LPF DELETE_EFFECT INT_VAR match_opcode=326 END
-		BUT_ONLY // Copy payload spell, remove raise effect and #rdremov casting
+		BUT_ONLY // Create healing-only subspell
 		COPY_EXISTING ~SPPR712.SPL~ ~override~ // Resurrection
 			LPF CLONE_EFFECT INT_VAR match_opcode=326 parameter2=113 STR_VAR match_resource=SPPR712A resource=SPPR712H insert=first END
 			LPF DELETE_EFFECT INT_VAR match_opcode=324 END
 		BUT_ONLY // Cast new subspell on living targets. Remove immunity message.
+		ACTION_IF FILE_EXISTS_IN_GAME ~RODS03.ITM~ THEN BEGIN
+			COPY_EXISTING ~RODS03.ITM~ ~override~ // Rod of Resurrection
+				LPF CLONE_EFFECT INT_VAR match_opcode=326 parameter2=113 STR_VAR match_resource=SPPR712A resource=SPPR712H insert=first END
+				LPF DELETE_EFFECT INT_VAR match_opcode=324 END
+			BUT_ONLY // Cast subspell on living targets. No immunity message.
+		END
 	END
-	ACTION_IF FILE_EXISTS_IN_GAME ~SPPR729.SPL~ THEN BEGIN
+	ACTION_IF ((FILE_EXISTS_IN_GAME ~SPPR729.SPL~) AND NOT (FILE_EXISTS_IN_GAME ~SPPR729H.SPL~)) THEN BEGIN
 		COPY_EXISTING ~SPPR729A.SPL~ ~override/SPPR729H.SPL~
 			LPF DELETE_EFFECT INT_VAR match_opcode=32 END
 			LPF DELETE_EFFECT INT_VAR match_opcode=326 END
-		BUT_ONLY // Copy payload spell, remove raise effect and #rdremov casting
+		BUT_ONLY // Create healing-only subspell
 		COPY_EXISTING ~SPPR729.SPL~ ~override~ // Mass Raise Dead
 			LPF CLONE_EFFECT INT_VAR match_opcode=326 parameter2=113 STR_VAR match_resource=SPPR729A resource=SPPR729H insert=first END
 		BUT_ONLY // Cast new subspell on living targets
-	END
-	ACTION_IF FILE_EXISTS_IN_GAME ~RODS03.ITM~ THEN BEGIN
-		COPY_EXISTING ~RODS03.ITM~ ~override~ // Rod of Resurrection
-			LPF CLONE_EFFECT INT_VAR match_opcode=326 parameter2=113 STR_VAR match_resource=SPPR712A resource=SPPR712H insert=first END
-			LPF DELETE_EFFECT INT_VAR match_opcode=324 END
-		BUT_ONLY // Cast new subspell on living targets. Remove immunity message.
 	END
 
 //
@@ -1138,11 +1242,12 @@ GROUP @2
 		INSERT_2DA_ROW rowcount colcount ~%newrow%~
 	BUT_ONLY // Add row to Undead Hunter CLAB to apply new spells
 
-	OUTER_SET UHDesc = RESOLVE_STR_REF (@24010) // New class description
+	OUTER_SET UHDesc = RESOLVE_STR_REF (@24010) // New kit description
+
 	COPY_EXISTING ~KITLIST.2DA~ ~override~
 		READ_2DA_ENTRIES_NOW rows 10
 		FOR (row=0; row < rows; ++row) BEGIN
-			READ_2DA_ENTRY_FORMER rows row 1 ~name~
+			READ_2DA_ENTRY_FORMER rows row 1 name
 			PATCH_IF (~%name%~ STR_EQ ~UNDEAD_HUNTER~) BEGIN
 				SET UH_row = %row%
 			END
@@ -1152,7 +1257,7 @@ GROUP @2
 	COPY_EXISTING ~clastext.2DA~ ~override~
 		READ_2DA_ENTRIES_NOW rows 9
 		FOR (row=0; row < rows; ++row) BEGIN
-			READ_2DA_ENTRY_FORMER rows row 0 ~name~
+			READ_2DA_ENTRY_FORMER rows row 0 name
 			PATCH_IF (~%name%~ STR_EQ ~UNDEAD_HUNTER~) BEGIN
 				SET UH_row = %row%
 			END
@@ -1166,7 +1271,7 @@ GROUP @2
 	COPY_EXISTING ~ENGINEST.2DA~ ~override~
 		READ_2DA_ENTRIES_NOW rows 2
 		FOR (row=0; row < rows; ++row) BEGIN
-			READ_2DA_ENTRY_FORMER rows row 0 ~label~
+			READ_2DA_ENTRY_FORMER rows row 0 label
 			PATCH_IF (~%label%~ STR_EQ ~STRREF_GUI_HELP_KIT_UNDEADHUNTER~) BEGIN
 				SET UH_row = %row%
 			END
@@ -1177,8 +1282,8 @@ GROUP @2
 		COPY_EXISTING ~sodcltxt.2da~ ~override~
 			COUNT_2DA_COLS cols // I don't know this one in advance
 			READ_2DA_ENTRIES_NOW rows cols
-			FOR (row = 1; row < rows; ++row) BEGIN
-				READ_2DA_ENTRY_FORMER rows row 0 ~name~
+			FOR (row=0; row < rows; ++row) BEGIN
+				READ_2DA_ENTRY_FORMER rows row 0 name
 				PATCH_IF ~%name%~ STR_EQ ~UNDEAD_HUNTER~ BEGIN
 					SET UH_row = %row%
 				END
@@ -1205,22 +1310,27 @@ GROUP @2
 	BUT_ONLY // Same usability as standard arrows. Present in both games.
 
 	ACTION_IF GAME_IS ~bg2ee eet~ THEN BEGIN
-		COPY_EXISTING ~item_use.2da~ ~override~ // Patching a bug in the item usability table
-			COUNT_2DA_ROWS 5 rowcount
+		COPY_EXISTING ~item_use.2da~ ~override~
+			READ_2DA_ENTRIES_NOW rows 5
 			SET doubled = 0
-			FOR (row=0; row < rowcount; ++row) BEGIN
-				READ_2DA_ENTRY row 0 5 item
+			SET duperow = 0
+			FOR (row=0; row < rows; ++row) BEGIN
+				READ_2DA_ENTRY_FORMER rows row 0 item
 				PATCH_IF (~%item%~ STR_EQ ~NPSW03~) BEGIN
-					++doubled
-				END
-				PATCH_IF (doubled = 2) BEGIN
-					SET_2DA_ENTRY row 0 5 ~NPSTAF~
-					SET_2DA_ENTRY row 1 5 ~CERND~
-					SET_2DA_ENTRY row 4 5 9153
-					++doubled // Don't do anything in later rows
+					SET doubled +=1
+					PATCH_IF (doubled = 2) BEGIN
+						SET duperow = %row%
+						SET doubled = 99
+					END
 				END
 			END
-		BUT_ONLY // Replaces second entry for Keldorn's sword with one for Cernd's staff
+			PATCH_IF (duperow > 0) BEGIN
+				SET_2DA_ENTRY duperow 0 5 ~NPSTAF~
+				SET_2DA_ENTRY duperow 1 5 ~CERND~
+				SET_2DA_ENTRY duperow 4 5 9153
+			END
+			UNLESS ~NPSTAF~ // Skip if missed item is already there
+		BUT_ONLY // Remove duplicate entry, replace with missed item
 
 		COPY_EXISTING ~NPARM.ITM~ ~override~ // Jan's armor
 			WRITE_LONG 0x1e 0x20040000
@@ -1378,7 +1488,7 @@ REQUIRE_PREDICATE GAME_IS ~bg2ee eet~ @11
 	COPY_EXISTING ~C6ERIC.CRE~ ~override~
 	              ~C6ERIC3.CRE~ ~override~
 		WRITE_LONG 0x244 0x40060000
-	BUT_ONLY // Eric Vanstraelen is an Undead Hunter
+	BUT_ONLY // Eric Vanstraaten is an Undead Hunter
 	EXTEND_TOP ~C6ERIC.BCS~ ~jtweaks/resource/C6EricPatch.baf~ // Apply UH passives
 
 	COPY_EXISTING ~C6ARKAN.CRE~ ~override~
@@ -1388,7 +1498,10 @@ REQUIRE_PREDICATE GAME_IS ~bg2ee eet~ @11
 
 	COPY_EXISTING ~AEGIS.ITM~ ~override~
 	              ~AEGIS2.ITM~ ~override~
-		WRITE_LONG 0x60 3
+		READ_LONG 0x60 temp
+		PATCH_IF (temp = 0) BEGIN
+			WRITE_LONG 0x60 3
+		END // Don't mess with the hammer if it's already been changed
 	BUT_ONLY // Wulfgar's hammer can hit vampires
 
 //
@@ -1429,6 +1542,7 @@ REQUIRE_PREDICATE GAME_IS ~bg2ee eet~ @11
 //
 
 BEGIN @30000 DESIGNATED 300
+GROUP @4
 ACTION_FOR_EACH script IN // Party combat AI scripts
 	~BDAJANTC.BCS~ ~BDALORAC.BCS~ ~bdbaeloc.BCS~ ~BDBRANWC.BCS~ ~BDCORANC.BCS~ ~BDDEFAI.BCS~ ~bddornc.BCS~ ~bddynac.BCS~ ~bdedwinc.BCS~ ~BDELDOTC.BCS~ ~BDFALDOC.BCS~ ~BDGARRCC.BCS~ ~BDIMOENC.BCS~ ~bdjaheic.BCS~ ~BDKAGAIC.BCS~ ~bdkhalic.BCS~ ~BDKIVANC.BCS~ ~bdminscc.BCS~ ~BDMONTAC.BCS~ ~bdneerac.BCS~ ~BDQUALEC.BCS~ ~bdrasaac.BCS~ ~bdsafanc.BCS~ ~BDSHARTC.BCS~ ~BDSKIEC.BCS~ ~BDTIAXC.BCS~ ~bdviconc.BCS~ ~BDXANC.BCS~ ~BDXZARC.BCS~ ~BDYESLIC.BCS~ ~BDAERIEC.BCS~ ~BDANOMEC.BCS~ ~BDCERNDC.BCS~ ~BDHAERC.BCS~ ~BDHEXXAC.BCS~ ~BDJANC.BCS~ ~BDKELDOC.BCS~ ~BDKORGAC.BCS~ ~BDMAZZYC.BCS~ ~BDNALIAC.BCS~ ~BDSAREVC.BCS~ ~BDVALYGC.BCS~ ~BDWILSOC.BCS~ ~BDYOSHIC.BCS~ /* ~BDGLINTC.BCS~ ~BDCAELAC.BCS~ ~BDCORWIC.BCS~ ~BDGLINTC.BCS~ ~BDMKHIIC.BCS~ ~BDVOGHIC.BCS~ (SoD scripts excluded due to modder's lack of knowledge) */
 	BEGIN
@@ -1451,3 +1565,394 @@ ACTION_FOR_EACH script IN // Party combat AI scripts
 		BUT_ONLY END
 	END
 
+//
+//
+// Map notes for BGEE quests
+//
+//
+
+BEGIN @31000 DESIGNATED 310
+GROUP @5
+	REQUIRE_PREDICATE GAME_IS ~bgee eet~ @13
+	ACTION_IF GAME_IS ~bgee~ THEN BEGIN
+		OUTER_SPRINT baldurNW AR0100
+		OUTER_SPRINT baldurNC AR0200
+		OUTER_SPRINT baldurCW AR0600
+		OUTER_SPRINT baldurCC AR0700
+		OUTER_SPRINT baldurCE AR0800
+		OUTER_SPRINT baldurSC AR1200
+		OUTER_SPRINT baldurSE AR1300
+		OUTER_SPRINT frarminn AR2300
+		OUTER_SPRINT beregost AR3300
+		OUTER_SPRINT nashkel AR4800
+	END ELSE BEGIN
+		OUTER_SPRINT baldurNW BG0100
+		OUTER_SPRINT baldurNC BG0200
+		OUTER_SPRINT baldurCW BG0600
+		OUTER_SPRINT baldurCC BG0700
+		OUTER_SPRINT baldurCE BG0800
+		OUTER_SPRINT baldurSC BG1200
+		OUTER_SPRINT baldurSE BG1300
+		OUTER_SPRINT frarminn AR2300
+		OUTER_SPRINT beregost BG3300
+		OUTER_SPRINT nashkel BG4800
+	END // Area codes for EET compatibility
+
+	OUTER_SET PheirkasNote = RESOLVE_STR_REF (@31010)
+	OUTER_SET QuinnNote = 0 // Default value in case it's missing from the area file
+	COPY_EXISTING ~%baldurNW%.ARE~ ~override~
+		READ_LONG 0xC4 ofsNotes
+		READ_LONG 0xC8 numNotes
+		FOR (n=0; n<numNotes; ++n) BEGIN
+			SET ofsX = ofsNotes + (n*52)
+			SET ofsY = ofsNotes + (n*52) + 2
+			SET ofsText = ofsNotes + (n*0x34) + 4
+			READ_SHORT ofsX xpos
+			READ_SHORT ofsY ypos
+			PATCH_IF ((xpos=3639) AND (ypos=2271)) BEGIN
+				READ_LONG ofsText noteRef
+				SET QuinnNote = %noteRef%
+			END
+		END // Get existing string reference for "Quinn's House" note
+	BUT_ONLY
+	ACTION_IF (QuinnNote = 0) BEGIN
+		OUTER_SET QuinnNote = RESOLVE_STR_REF (@31011)
+	END // Backup plan for if the map note has already been removed
+	EXTEND_BOTTOM ~%baldurNW%.BCS~ ~jtweaks/resource/map-notes/BaldurNWPatch.baf~ EVALUATE_BUFFER
+	
+	OUTER_SET BherenNote = RESOLVE_STR_REF (@31020)
+	OUTER_SET RinnieNote = RESOLVE_STR_REF (@31021)
+	EXTEND_BOTTOM ~%baldurNC%.BCS~ ~jtweaks/resource/map-notes/BaldurNCPatch.baf~ EVALUATE_BUFFER
+
+	OUTER_SET FentenNote = RESOLVE_STR_REF (@31060)
+	OUTER_SET TremainNote = RESOLVE_STR_REF (@31061)
+	EXTEND_BOTTOM ~%baldurCW%.BCS~ ~jtweaks/resource/map-notes/BaldurCWPatch.baf~ EVALUATE_BUFFER
+
+	OUTER_SET FeloniusNote = 0
+	OUTER_SET NadineNote = RESOLVE_STR_REF (@31071)
+	OUTER_SET OberanNote = 0
+	COPY_EXISTING ~%baldurCC%.ARE~ ~override~
+		READ_LONG 0xC4 ofsNotes
+		READ_LONG 0xC8 numNotes
+		FOR (n=0; n<numNotes; ++n) BEGIN
+			SET ofsX = ofsNotes + (n*52)
+			SET ofsY = ofsNotes + (n*52) + 2
+			SET ofsText = ofsNotes + (n*0x34) + 4
+			READ_SHORT ofsX xpos
+			READ_SHORT ofsY ypos
+			PATCH_IF ((xpos=2003) AND (ypos=732)) BEGIN
+				READ_LONG ofsText noteRef
+				SET FeloniusNote = %noteRef%
+			END
+			PATCH_IF ((xpos=3446) AND (ypos=176)) BEGIN
+				READ_LONG ofsText noteRef
+				SET OberanNote = %noteRef%
+			END
+		END // Get existing string references
+	BUT_ONLY
+	ACTION_IF (FeloniusNote = 0) BEGIN
+		OUTER_SET QuinnNote = RESOLVE_STR_REF (@31070)
+	END
+	ACTION_IF (OberanNote = 0) BEGIN
+		OUTER_SET QuinnNote = RESOLVE_STR_REF (@31072)
+	END
+	EXTEND_BOTTOM ~%baldurCC%.BCS~ ~jtweaks/resource/map-notes/BaldurCCPatch.baf~ EVALUATE_BUFFER
+
+	OUTER_SET ArkionNote = RESOLVE_STR_REF (@31080)
+	OUTER_SET ThiefGuildNote = 0
+	COPY_EXISTING ~%baldurCE%.ARE~ ~override~
+		READ_LONG 0xC4 ofsNotes
+		READ_LONG 0xC8 numNotes
+		FOR (n=0; n<numNotes; ++n) BEGIN
+			SET ofsX = ofsNotes + (n*52)
+			SET ofsY = ofsNotes + (n*52) + 2
+			SET ofsText = ofsNotes + (n*0x34) + 4
+			READ_SHORT ofsX xpos
+			READ_SHORT ofsY ypos
+			PATCH_IF ((xpos=1150) AND (ypos=1254)) BEGIN
+				READ_LONG ofsText noteRef
+				SET ThiefGuildNote = %noteRef%
+			END
+		END // Get existing string reference for "Thieves' Guild Entrance" note
+	BUT_ONLY
+	ACTION_IF (ThiefGuildNote = 0) BEGIN
+		OUTER_SET ThiefGuildNote = RESOLVE_STR_REF (@31081)
+	END
+	EXTEND_BOTTOM ~%baldurCE%.BCS~ ~jtweaks/resource/map-notes/BaldurCEPatch.baf~ EVALUATE_BUFFER
+
+	OUTER_SET CordyrNote = RESOLVE_STR_REF (@31120)
+	OUTER_SET GhorakNote = RESOLVE_STR_REF (@31121)
+	EXTEND_BOTTOM ~%baldurSC%.BCS~ ~jtweaks/resource/map-notes/BaldurSCPatch.baf~ EVALUATE_BUFFER
+
+	OUTER_SET GantolandanNote = 0
+	OUTER_SET NemphreNote = RESOLVE_STR_REF (@31131)
+	COPY_EXISTING ~%baldurSE%.ARE~ ~override~
+		READ_LONG 0xC4 ofsNotes
+		READ_LONG 0xC8 numNotes
+		FOR (n=0; n<numNotes; ++n) BEGIN
+			SET ofsX = ofsNotes + (n*52)
+			SET ofsY = ofsNotes + (n*52) + 2
+			SET ofsText = ofsNotes + (n*0x34) + 4
+			READ_SHORT ofsX xpos
+			READ_SHORT ofsY ypos
+			PATCH_IF ((xpos=742) AND (ypos=1257)) BEGIN
+				READ_LONG ofsText noteRef
+				SET GantolandanNote = %noteRef%
+			END
+		END // Get existing string reference for "Gantolandan's House" note
+	BUT_ONLY
+	ACTION_IF (GantolandanNote = 0) BEGIN
+		OUTER_SET GantolandanNote = RESOLVE_STR_REF (@31130)
+	END
+	EXTEND_BOTTOM ~%baldurSE%.BCS~ ~jtweaks/resource/map-notes/BaldurSEPatch.baf~ EVALUATE_BUFFER
+
+	OUTER_SET JoiaNote = RESOLVE_STR_REF (@31230)
+	EXTEND_BOTTOM ~%frarminn%.BCS~ ~jtweaks/resource/map-notes/FrArmInnPatch.baf~ EVALUATE_BUFFER
+
+	OUTER_SET ColquetleNote = RESOLVE_STR_REF (@31330)
+	OUTER_SET LandrinNote = 0
+	OUTER_SET MirianneNote = RESOLVE_STR_REF (@31332)
+	COPY_EXISTING ~%beregost%.ARE~ ~override~
+		READ_LONG 0xC4 ofsNotes
+		READ_LONG 0xC8 numNotes
+		FOR (n=0; n<numNotes; ++n) BEGIN
+			SET ofsX = ofsNotes + (n*52)
+			SET ofsY = ofsNotes + (n*52) + 2
+			SET ofsText = ofsNotes + (n*0x34) + 4
+			READ_SHORT ofsX xpos
+			READ_SHORT ofsY ypos
+			PATCH_IF ((xpos=3059) AND (ypos=3468)) BEGIN
+				READ_LONG ofsText noteRef
+				SET LandrinNote = %noteRef%
+			END
+		END // Get existing string reference for "Landrin's House" note
+	BUT_ONLY
+	ACTION_IF (LandrinNote = 0) BEGIN
+		OUTER_SET LandrinNote = RESOLVE_STR_REF (@31331)
+	END
+	EXTEND_BOTTOM ~%beregost%.BCS~ ~jtweaks/resource/map-notes/BeregostPatch.baf~ EVALUATE_BUFFER
+
+	OUTER_SET JosephNote = RESOLVE_STR_REF (@31480)
+	EXTEND_BOTTOM ~%nashkel%.BCS~ ~jtweaks/resource/map-notes/NashkelPatch.baf~ EVALUATE_BUFFER
+
+	COMPILE ~jtweaks/resource/map-notes/MapNotePatch.d~ // Add dialogue actions
+
+//
+//
+// Standardize inn and tavern music
+//
+//
+
+BEGIN @32000 DESIGNATED 320
+GROUP @5
+	REQUIRE_PREDICATE GAME_IS ~bgee eet~ @13
+	ACTION_IF GAME_IS ~bgee~ THEN BEGIN
+		OUTER_SPRINT elfsong1 AR0705
+		OUTER_SPRINT elfsong2 AR0706
+		OUTER_SPRINT ulgoth1 AR1001
+		OUTER_SPRINT yeolde2 AR1114
+		OUTER_SPRINT lowlant1 AR0133
+		OUTER_SPRINT lowlant2 AR0134
+		OUTER_SPRINT lowlant3 AR0135
+		OUTER_SPRINT lowlant4 AR0136
+		OUTER_SPRINT inntav2 AR1307
+		OUTER_SPRINT friarm2 AR2302
+		OUTER_SPRINT friarm3 AR2303
+	END ELSE BEGIN
+		OUTER_SPRINT elfsong1 BG0705
+		OUTER_SPRINT elfsong2 BG0706
+		OUTER_SPRINT ulgoth1 BG1001
+		OUTER_SPRINT yeolde2 BG1114
+		OUTER_SPRINT lowlant1 BG0133
+		OUTER_SPRINT lowlant2 BG0134
+		OUTER_SPRINT lowlant3 BG0135
+		OUTER_SPRINT lowlant4 BG0136
+		OUTER_SPRINT inntav2 BG1307
+		OUTER_SPRINT friarm2 BG2302
+		OUTER_SPRINT friarm3 BG2303
+	END // Area codes for EET compatibility
+	OUTER_SET songtav2 = IDS_OF_SYMBOL (~songlist~ ~tav2~)
+	OUTER_SET songtav4 = IDS_OF_SYMBOL (~songlist~ ~tav4~)
+	// 36 and 38 in BGEE, 
+	// BG1 and BG2 versions of these songs differ. Same music, added breaks in BG2.
+
+	COPY_EXISTING ~%yeolde2%.ARE~ ~override~
+	              ~%lowlant3%.ARE~ ~override~
+	              ~%lowlant4%.ARE~ ~override~
+	              ~%inntav2%.ARE~ ~override~
+	              ~%friarm2%.ARE~ ~override~
+	              ~%friarm3%.ARE~ ~override~
+		READ_LONG 0xBC ofsSong
+		SET ofsDay = ofsSong
+		SET ofsNight = ofsSong + 4
+		WRITE_LONG ofsDay 0xFFFFFFFF
+		WRITE_LONG ofsNight 0xFFFFFFFF
+	BUT_ONLY // Areas with "no" music.
+
+	COPY_EXISTING ~%lowlant1%.ARE~ ~override~
+	              ~%lowlant2%.ARE~ ~override~
+		READ_LONG 0xBC ofsSong
+		SET ofsDay = ofsSong
+		SET ofsNight = ofsSong + 4
+		WRITE_LONG ofsDay %songtav2%
+		WRITE_LONG ofsNight %songtav2%
+	BUT_ONLY // Areas with tavern music #2. I rolled a die to choose.
+	COPY_EXISTING ~%elfsong1%.ARE~ ~override~
+	              ~%elfsong2%.ARE~ ~override~
+	              ~%ulgoth1%.ARE~ ~override~
+		READ_LONG 0xBC ofsSong
+		SET ofsDay = ofsSong
+		SET ofsNight = ofsSong + 4
+		WRITE_LONG ofsDay %songtav4%
+		WRITE_LONG ofsNight %songtav4%
+	BUT_ONLY // Areas with tavern music #4.
+
+//
+//
+// Randomize battle music
+//
+//
+
+BEGIN @33000 DESIGNATED 330
+GROUP @5
+	ACTION_IF (FILE_EXISTS_IN_GAME ~TU0018.ARE~) BEGIN
+		COPY_EXISTING ~TU0018.ARE~ ~override~
+			SET songid = IDS_OF_SYMBOL (~songlist~ ~BD1~)
+			READ_LONG 0xBC ofsSong
+			WRITE_LONG (ofsSong + 12) songid
+		BUT_ONLY
+	END // Pre-processing. Battle song unused in BGEE songlist, valid in BG2EE.
+	ACTION_IF (GAME_IS ~bgee eet~) BEGIN
+		ACTION_IF GAME_IS ~bgee~ BEGIN
+			OUTER_SPRINT ckcata1 ~AR2615~
+			OUTER_SPRINT bgsewere ~AR0226~
+		END ELSE BEGIN
+			OUTER_SPRINT ckcata1 ~BG2615~
+			OUTER_SPRINT bgsewere ~BG0226~
+		END
+		COPY_EXISTING ~%ckcata1%.ARE~ ~override~
+		              ~%bgsewere%.ARE~ ~override~
+			READ_LONG 0xBC ofsSong
+			WRITE_LONG (ofsSong + 12) 0
+		BUT_ONLY
+	END // More BGEE pre-processing. Unsuitable music removed.
+	ACTION_IF (GAME_IS ~bg2ee eet~) BEGIN
+		COPY_EXISTING ~AR0014.ARE~ ~override~
+		              ~AR0021.ARE~ ~override~
+		              ~AR0028.ARE~ ~override~
+		              ~AR0069.ARE~ ~override~
+		              ~AR0070.ARE~ ~override~
+		              ~AR0071.ARE~ ~override~
+		              ~AR0072.ARE~ ~override~
+		              ~AR0083.ARE~ ~override~
+		              ~AR0084.ARE~ ~override~
+		              ~AR5012.ARE~ ~override~
+			READ_LONG 0xBC ofsSong
+			WRITE_LONG (ofsSong + 12) 0
+		BUT_ONLY
+	END // BG2EE pre-processing. Unsuitable music removed. Mostly cutscene areas.
+	ACTION_CLEAR_ARRAY battlemusic
+	OUTER_SET bsnum = 0
+	ACTION_FOR_EACH songname IN ~BC1~ ~BC2~ ~BD1~ ~BD2~ ~BD3~ ~BF1~ ~BF2~ ~BJR~ ~BL1~ ~BL2~ ~BM1~ ~BM2~ ~BP1~ ~BP2~ ~BPC1~ ~BPC2~ ~BPC3~ ~BRD~ ~BSD~ ~BST~ ~BW1~ ~Dorn1~ ~Mb~ ~Neera1~ ~Neera2~ ~Vb~ BEGIN
+		OUTER_SET songid = IDS_OF_SYMBOL (~songlist~ ~%songname%~)
+		ACTION_IF (songid > 0) BEGIN
+			OUTER_SET bsnum += 1
+			OUTER_SET $battlemusic(~%bsnum%~) = songid
+		END
+	END // Build initial list of songs. Full coverage for non-SoD BGEE and BG2EE
+
+	ACTION_IF (debug_messages) BEGIN
+		OUTER_SET idscount = bsnum
+		PRINT ~%idscount% songs found in IDS list~
+	END
+
+	COPY_EXISTING_REGEXP GLOB ~^.+\.ARE$~ ~override~
+		READ_LONG 0xBC ofsSong
+		READ_LONG (ofsSong + 12) songid
+		SET AlreadyThere = 0
+		PHP_EACH battlemusic AS n => songref BEGIN
+			PATCH_IF (songid = songref) BEGIN
+				SET AlreadyThere = 1
+			END
+		END
+		PATCH_IF ((songid != 0) AND (AlreadyThere = 0)) BEGIN
+			PATCH_IF (RESOURCE_CONTAINS songlist.IDS ~%songid% ~) BEGIN
+				SET bsnum += 1
+				SET $battlemusic(~%bsnum%~) = songid
+				PATCH_IF (debug_messages) BEGIN
+					PATCH_PRINT ~Song %songid% added from area %SOURCE_RES%~
+				END
+			END // Add any song I missed above, if it's in songlist.
+		END // But not the blank song at ID zero
+	BUT_ONLY
+
+	ACTION_IF (debug_messages) BEGIN
+		OUTER_SET areacount = %bsnum% - %idscount%
+		PRINT ~%areacount% additional songs found used by areas~ 
+	END
+
+	COPY_EXISTING_REGEXP GLOB ~^.+\.ARE$~ ~override~
+		READ_LONG 0xBC ofsSong
+		SET ofsBattle = ofsSong + 12
+		SET randIndex = RANDOM (1 bsnum)
+		SET randSong = $battlemusic(~%randIndex%~)
+		WRITE_LONG ofsBattle randSong
+	BUT_ONLY // Make the changes.
+	
+//
+//
+// Potion effects don't stack with themselves
+//
+//
+
+BEGIN @34000 DESIGNATED 340
+GROUP @2
+	COPY_EXISTING_REGEXP GLOB ~^.+\.ITM$~ ~override~
+		READ_SHORT 0x1c itemtype
+		PATCH_IF (itemtype = 9) BEGIN
+			LPF CLONE_EFFECT INT_VAR check_globals=0 header_type=3 multi_match=1 silent=1 match_target=1 match_timing=0 opcode=321 power=0 parameter1=0 parameter2=0 timing=1 resist_dispel=2 duration=0 probability1=100 probability2=0 dicenumber=0 dicesize=0 savingthrow=0 savebonus=0 special=0 STR_VAR insert=first resource=~%SOURCE_RES%~ END
+		END // If it's a potion with at least one self-targeted temporary effect,
+	BUT_ONLY // make it so the first thing it does is remove its own effects.
+
+//
+//
+// Bigger random spawns
+//
+//
+
+BEGIN @35000 DESIGNATED 350
+GROUP @3
+	ACTION_CLEAR_ARRAY spawnGroups
+	OUTER_SET NumSpawnGroups = 0
+	COPY_EXISTING ~SPAWNGRP.2DA~ ~override~
+		COUNT_2DA_COLS cols
+		SET NumSpawnGroups = cols - 1
+		READ_2DA_ENTRIES_NOW rows NumSpawnGroups // We only want the header row.
+		FOR (n = 0; n < NumSpawnGroups; ++n) BEGIN
+			READ_2DA_ENTRY_FORMER rows 0 n temp
+			SPRINT $spawnGroups(~%n%~) ~%temp%~
+		END
+	BUT_ONLY // No change to the 2da. We merely read it to build an array.
+
+	COPY_EXISTING_REGEXP GLOB ~^.+\.ARE$~ ~override~
+		READ_LONG 0x60 ofsSpawn
+		READ_LONG 0x64 numSpawn
+		FOR (k = 0; k < numSpawn; ++k) BEGIN
+			SET isMonGrp = 0
+			SET ofsNumCre = ofsSpawn + 200*k + 116
+			READ_SHORT ofsNumCre NumCre
+			FOR (j = 1; j <= NumCre; ++j) BEGIN
+				SET ofsCre = ofsSpawn + 200*k + 28 + 8*j
+				READ_ASCII ofsCre creName (8) NULL
+				PHP_EACH spawnGroups AS index => monGrp BEGIN
+					PATCH_IF (~%monGrp%~ STR_EQ ~%creName%~) BEGIN
+						SET isMonGrp = 1
+					END
+				END // Check if it's a group from SPAWNGRP.2DA
+			END
+			PATCH_IF (isMonGrp = 0) BEGIN
+				SET ofsMax = ofsSpawn + 200*k + 132
+				WRITE_SHORT ofsMax 10
+			END // The actual change
+		END
+	BUT_ONLY

@@ -1,0 +1,27 @@
+IF
+	Global("J8#NemphreNote","GLOBAL",0)
+	OR(2)
+		GlobalGT("HelpNemphre","GLOBAL",0)
+		GlobalGT("HelpOrdulinian","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#NemphreNote","GLOBAL",2)
+		AddMapNote([1725.280],%NemphreNote%)
+END
+
+IF
+	Global("J8#GantolandanNote","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#GantolandanNote","GLOBAL",1)
+		RemoveMapNote([742.1257],%GantolandanNote%)
+END
+
+IF
+	Global("J8#GantolandanNote","GLOBAL",1)
+	Global("NarlenMove","GLOBAL",4)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#GantolandanNote","GLOBAL",2)
+		AddMapNote([742.1257],%GantolandanNote%)
+END

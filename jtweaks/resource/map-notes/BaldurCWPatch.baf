@@ -1,0 +1,16 @@
+IF
+	Global("J8#FentenNote","GLOBAL",1)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#FentenNote","GLOBAL",2)
+		AddMapNote([3420.3215],%FentenNote%)
+END
+
+IF
+	Global("J8#TremainNote","GLOBAL",0)
+	GlobalGT("HelpVarci","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#TremainNote","GLOBAL",2)
+		AddMapNote([890.695],%TremainNote%)
+END

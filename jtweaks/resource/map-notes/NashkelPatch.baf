@@ -1,0 +1,10 @@
+IF
+	Global("J8#JosephNote","GLOBAL",0)
+	OR(2)
+		PartyHasItem("RINGJOS")
+		GlobalGT("HelpNashkellWoman","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#JosephNote","GLOBAL",2)
+		AddMapNote([4200.2945],%JosephNote%)
+END

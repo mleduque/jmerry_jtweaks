@@ -1,0 +1,29 @@
+IF
+	Global("J8#PheirkasNote","GLOBAL",0)
+	OR(2)
+		GlobalGT("StartedPheirkasQuest","GLOBAL",0)
+		PartyHasItem("CLCK08")
+THEN
+	RESPONSE #100
+		SetGlobal("J8#PheirkasNote","GLOBAL",2)
+		AddMapNote([1765.2525],%PheirkasNote%)
+END
+
+IF
+	Global("J8#QuinnNote","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#QuinnNote","GLOBAL",1)
+		RemoveMapNote([3639.2271],%QuinnNote%)
+END
+
+IF
+	Global("J8#QuinnNote","GLOBAL",1)
+	OR(2)
+		GlobalGT("HelpQuinn","GLOBAL",0)
+		PartyHasItem("DAGG06")
+THEN
+	RESPONSE #100
+		SetGlobal("J8#QuinnNote","GLOBAL",2)
+		AddMapNote([3639.2271],%QuinnNote%)
+END

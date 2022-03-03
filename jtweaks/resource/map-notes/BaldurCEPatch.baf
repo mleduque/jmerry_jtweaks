@@ -1,0 +1,36 @@
+IF
+	Global("J8#ArkionNote","GLOBAL",0)
+	OR(3)
+		GlobalGT("bd_arkion_quest","GLOBAL",0)
+		GlobalGT("HelpNemphre","GLOBAL",0)
+		GlobalGT("HelpOrdulinian","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#ArkionNote","GLOBAL",2)
+		AddMapNote([1570.3225],%ArkionNote%)
+END
+
+IF
+	Global("J8#ThiefGuildNotes","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#ThiefGuildNotes","GLOBAL",1)
+		RemoveMapNote([1150.1254],%ThiefGuildNote%)
+		RemoveMapNote([1693.1267],%ThiefGuildNote%)
+		RemoveMapNote([2165.1285],%ThiefGuildNote%)
+END
+
+IF
+	Global("J8#ThiefGuildNotes","GLOBAL",1)
+	OR(3)
+		Global("DukeThanks","GLOBAL",1)
+		Global("J8#TalkedToNiklos","GLOBAL",1)
+		GlobalGT("HelpAlatos","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#ThiefGuildNotes","GLOBAL",2)
+		AddMapNote([1150.1254],%ThiefGuildNote%)
+		AddMapNote([1693.1267],%ThiefGuildNote%)
+		AddMapNote([2165.1285],%ThiefGuildNote%)
+		AddMapNote([1440.1300],%ThiefGuildNote%)
+END

@@ -1,0 +1,15 @@
+IF
+	Global("J8#BherenNote","GLOBAL",1)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#BherenNote","GLOBAL",2)
+		AddMapNote([750.2720],%BherenNote%)
+END
+
+IF
+	Global("J8#RinnieNote","GLOBAL",1)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#RinnieNote","GLOBAL",2)
+		AddMapNote([1205.2850],%RinnieNote%)
+END

@@ -7,6 +7,8 @@
 @1 = ~Bug Fixes~
 @2 = ~Rule Changes~
 @3 = ~Content Changes~
+@4 = ~AI Tweaks~
+@5 = ~Cosmetic Changes~
 @10 = ~This mod is not designed for non-EE games~
 @11 = ~This component is only for games with BG2EE content~
 @12 = ~This component is only for patch 2.6~
@@ -55,6 +57,11 @@
 @28000 = ~Allies against Bodhi are better prepared for vampires~
 @29000 = ~Noober's Game~
 @30000 = ~Slightly improved party AI~
+@31000 = ~Map notes for BGEE quests~
+@32000 = ~Standardize inn and tavern music~
+@33000 = ~Randomize battle music~
+@34000 = ~Potion effects don't stack with themselves~
+@35000 = ~Bigger random spawns~
 
 //
 //
@@ -305,7 +312,7 @@ Special Ability:
 Advantages:
 – +3 bonus to hit and damage rolls against undead creatures.
 – Immune to hold and level drain.
-- Gains +2 to Turn Undead level at level 3, and an additional +1 at level 10 and each three levels thereafter.
+– Gains +2 to Turn Undead level at level 3, and an additional +1 at level 10 and each three levels thereafter.
 
 Disadvantages:
 – May not use Lay On Hands ability.~
@@ -320,3 +327,27 @@ Disadvantages:
 @29020 = ~Summoning Scroll~
 @29021 = ~When read outdoors, this scroll apparently summons a being "so feared that ALL who encounter him flee in screaming irritation". You are unable to decipher any more details without using the scroll.~
 @29030 = ~Try to force the door open.~
+
+// Map Notes for BGEE quests
+/* Translation notes: @31011, @31070, @31072, @31081, @31130, @31331 are existing strings for map notes, in the range from #27522 to #27581 from base BGEE. They are here only as backups in case the note is somehow already removed from the area file, and should exactly match the original game text. The other strings are new. */
+
+@31010 = ~Pheirkas' House~
+@31011 = ~Quinn's House~
+@31020 = ~Bheren's House~
+@31021 = ~Rinnie's House~
+@31060 = ~Fenten's House~
+@31061 = ~Tremain's House~
+@31070 = ~Felonius Gist's Manor~
+@31071 = ~Nadine's House~
+@31072 = ~Oberan's Estate~
+@31080 = ~Arkion's House~
+@31081 = ~Thieves' Guild Entrance~
+@31120 = ~Cordyr's House~
+@31121 = ~Ghorak's House~
+@31130 = ~Gantolandan's House~
+@31131 = ~Nemphre's House~
+@31230 = ~Joia's Cabin~
+@31330 = ~Mr. Colquetle's House~
+@31331 = ~Landrin's House~
+@31332 = ~Mirianne's House~
+@31480 = ~Joseph's House~

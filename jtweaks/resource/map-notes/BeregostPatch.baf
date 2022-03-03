@@ -1,0 +1,40 @@
+IF
+	Global("J8#ColquetleNote","GLOBAL",0)
+	PartyHasItem("AMUL13CO")
+THEN
+	RESPONSE #100
+		SetGlobal("J8#ColquetleNote","GLOBAL",2)
+		AddMapNote([2175.2615],%ColquetleNote%)
+END
+
+IF
+	Global("J8#LandrinNote","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#LandrinNote","GLOBAL",1)
+		RemoveMapNote([3059.3468],%LandrinNote%)
+END
+
+IF
+	Global("J8#LandrinNote","GLOBAL",1)
+	OR(4)
+		Global("J8#TalkedToLandrin","GLOBAL",1)
+		PartyHasItem("MISC61")
+		PartyHasItem("MISC60")
+		PartyHasItem("BOOT06")
+THEN
+	RESPONSE #100
+		SetGlobal("J8#LandrinNote","GLOBAL",2)
+		AddMapNote([3059.3468],%LandrinNote%)
+END
+
+IF
+	GlobalLT("J8#MirianneNote","GLOBAL",2)
+	OR(2)
+		PartyHasItem("SCRL3I")
+		Global("J8#MirianneNote","GLOBAL",1)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#MirianneNote","GLOBAL",2)
+		AddMapNote([4800.2120],%MirianneNote%)
+END

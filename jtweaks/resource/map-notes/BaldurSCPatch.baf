@@ -1,0 +1,19 @@
+IF
+	Global("J8#CordyrNote","GLOBAL",0)
+	GlobalGT("HelpCordyr","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#CordyrNote","GLOBAL",2)
+		AddMapNote([3025.920],%CordyrNote%)
+END
+
+IF
+	Global("J8#GhorakNote","GLOBAL",0)
+	OR(2)
+		GlobalGT("HelpGhorak","GLOBAL",0)
+		PartyHasItem("MISC81")
+THEN
+	RESPONSE #100
+		SetGlobal("J8#GhorakNote","GLOBAL",2)
+		AddMapNote([4195.1965],%GhorakNote%)
+END

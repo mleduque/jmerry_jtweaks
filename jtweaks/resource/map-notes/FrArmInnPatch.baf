@@ -1,0 +1,10 @@
+IF
+	GlobalLT("J8#JoiaNote","GLOBAL",2)
+	OR(2)
+		PartyHasItem("RINGJOIA")
+		Global("J8#JoiaNote","GLOBAL",1)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#JoiaNote","GLOBAL",2)
+		AddMapNote([1555.2530],%JoiaNote%)
+END

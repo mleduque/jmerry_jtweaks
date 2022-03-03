@@ -17,7 +17,10 @@ As a tweak collection, this mod should be installed last or nearly last. Wheneve
 
 Installation:
 
-This mod is distributed as a zip archive and does not currently include a WeiDU installer. Installation requires WeiDU version 247 or later. And if you know how to use that, or a wrapper for it, you probably don't need any more details.
+This mod is distributed as a zip archive with Mac and Windows installers included. Unpack it, then put the jtweaks folder and any installers you intend to use in your game folder.
+Mac OS X: Put setup-jtweaks and setup-jtweaks.command from the install-osx folder in your game folder, and run setup-jtweaks.command. On recent OS versions, you'll need to go to System Preferences/Security to give it permission. (Unidentified developer)
+Windows: Put setup-jtweaks.exe from the install-windows folder in your game folder, and run it. This has not been tested, as I don't have a Windows system.
+Any: You can also run any WeiDU install tool you want; I use subtledoctor's Mac WeiDU Launcher. If you do this, you need WeiDU version 247 or later, with 248 or later recommended.
 
 Special Note for Siege of Dragonspear from Steam/GOG
 Good Old Games (GOG) and Steam both package the additional content for Siege of Dragonspear in a method that WeiDU, the tool used to install this mod, cannot access. You must run a program called Modmerge on your SoD installation before you can install this or any other WeiDU-based mod.
@@ -37,7 +40,7 @@ Games: BG2EE, EET
 Patch: 2.6
 
 In Dorn's quest during the SoA campaign, you encounter at one point a "dead" druid Vernus that you can raise to use as a sacrifice. Sadly, the update to resurrection spells in patch 2.6 broke the mechanism used for this.
-This component restores the ability to raise Vernus.
+This component restores the ability to raise Vernus by altering those spells again.
 
 – Fix Black Pits oversights:
 Games: BGEE, EET
@@ -48,6 +51,7 @@ This component fixes several minor issues with the Black Pits adventure bundled 
 This component fixes that issue, causing the script to remove itself if the character is not in a Black Pits area.
 – In the final normal fight, your foe Hogarl has both potions of extra healing and potions of fire breath. When he's hurt and has at least one potion of extra healing, he's scripted to ... use a potion of fire breath?
 This component fixes that obvious mistake, so Hogarl uses the potions he's meant to. He should be slightly tougher now.
+- The Black Pits shops include the Sandthief's Ring at both tier 2 and tier 3. The tier 2 version was fully charged, while the tier 3 version forgot to set a charge number. This component updates the tier 3 version to be fully charged as well. The ring is still never worth buying, because there's an unlimited supply of invisibility potions as well for a much lower price.
 
 – Enchant Weapon works in contingencies
 Games: BGEE, BG2EE, EET
@@ -73,6 +77,8 @@ Games: BGEE, BG2EE, EET
 A number of monsters are immune to polymorphs. However, the actual polymorph effect is not the only effect of hostile polymorph spells, and so they need specific immunities to those spells as well. This leads to some loopholes, notably with the wand of polymorphing. You can hit a demon with the wand to reduce them to 5 HP, 3 strength, no chance of casting arcane or divine spells, and 1d2 base damage even though they're supposed to be immune.
 This component alters everything that grants polymorph immunity to grant full immunity to the effects of the wand and bolt of polymorphing, and adds an overlooked wild surge to the immunity list. In addition, such items and spells formerly granted immunity to Sphere of Chaos; they now only grant immunity to the sphere's polymorph effect.
 
+Compatibility note: this component adds new subspells in the base game's namespace. WAND09.SPL for the effect of WAND09.ITM, BOLT05.SPL for the effect of BOLT05.ITM, and SPWI711P.SPL for the polymorph effect of SPWI711. If the subspell in question already exists, the component skips making any changes for that effect.
+
 – Shapeshift corrections
 Games: BGEE, BG2EE, EET
 Patch: 2.6
@@ -82,6 +88,7 @@ In BGEE:
 – Druid wolf shapeshifts used the wrong kind of wolf, resulting in strength 18 and dex 17 instead of 15 and 18 as listed. This component switches that, and also adds +1 damage like mage wolf polymorphs get.
 – Druid greater werewolf form doesn't match the BG2EE version; it lacks the regeneration added in version 2.6. This component adds that regeneration, although it doesn't matter in the standard rules.
 - Many form descriptions are updated to provide more accurate and complete information.
+- Shapeshift forms no longer allow for off-hand weapons to be used. This may display incorrectly on the inventory screen, but only main-hand attacks will actually happen and weapons held in the off hand will not provide passive bonuses.
 In BG2EE:
 – Black and brown bear shapeshifts were inadvertently switched with the 2.6 update; you use the ability for one kind of bear and get the other instead. This component switches them back.
 – Druid wolf shapeshifts used the wrong kind of wolf, resulting in strength 18 and dex 17 instead of 15 and 18 as listed. This component switches that, and also adds +1 damage like mage wolf polymorphs get.
@@ -92,6 +99,7 @@ In BG2EE:
 – Many form descriptions are updated to provide more accurate and complete information.
 
 This component comes in three versions: all forms, druid forms only, mage forms only. If you have another mod that alters shapeshifting, avoid using this component to alter any of the same forms that one did; this component's new descriptions may overwrite description changes from the other mod.
+Item-based shapeshifts, such as from the Cloak of the Wolf, are unchanged.
 
 – Wish Hardiness doesn't stack with itself
 Games: BG2EE, EET
@@ -178,6 +186,8 @@ Patch: 2.6
 The 2.6 update to resurrection spells removed the ability of Resurrection, Mass Raise Dead, and the Rod of Resurrection to heal living creatures. This component restores that ability.
 It does not restore the bugged behavior of Mass Raise Dead that caused it to massively heal the party for up to 6 times the intended amount, or the various bugs regarding temporary abilities that inspired the update in the first place.
 
+Compatibility note: this component adds new subspells in the base game's namespace. BHAAL4AH for the ToB Bhaalspawn resurrection power (unused in vanilla), SPPR712H for Resurrection and the Rod of Resurrection, SPPR729H for Mass Raise Dead. If any of these subspells already exist, the component will skip modifying the corresponding spells/items.
+
 - Loosen restrictions on what clones can do
 Games: BGEE, BG2EE, EET
 Patch: 2.6
@@ -195,14 +205,24 @@ I previously posted a quick and dirty version of this on the Beamdog forums; thi
 Games: BGEE, BG2EE, EET
 
 This component reduces the overly-specific class/kit/alignment restrictions on many NPC-specific items to reasonable levels, and also removes some attribute restrictions not listed in the item descriptions. It does not do anything about the items' restriction to only that NPC, and in some cases even tightens that (Cernd's staff is now listed in the item_use table in place of the second instance of Keldorn's sword, and both of Haer'Dalis' swords have tiefling-only restrictions instead of just one of them).
-This will generally have no effect under the standard rules; you have to change the NPC's class, kit, alignment, or stats to see anything.
 The only BGEE item affected by this mod is Eldoth's variety of poisoned arrow.
+
+This component is primarily intended for use with mods that allow you to customize NPCs; it will have essentially no non-cosmetic effects under the standard rules.
 
 - Green Slime poison can be cured
 Games: BGEE, BG2EE, EET
 
 If you get poisoned by a Green Slime, a simple antidote will stop the damage over time ... but it won't stop you from dying a few seconds later. This component changes that, so anything which cures poison will prevent the affected character from dying if delivered in time.
 You still can't save the bartender at Ye Olde Inn, though. You just didn't get there fast enough.
+
+- Potion effects don't stack with themselves
+Games: BGEE, BG2EE, EET
+
+When 2.6 was being developed, one beta version removed the ability of buff potions to stack with themselves. This change was dropped due to player response before the final release. But you know, I feel a bit bad about the part I played in that. So here's a simple mod component to apply that change.
+
+With this component, drinking a potion with ongoing effects while already under the effect of a potion of the same type will merely refresh that effect's duration, rather than stacking the effect higher. If you drink two different potions with similar effects, the effects will stack; a potion of genius and a potion of mind focusing together will still give you +7 Int as long as both are active. However, drinking three potions of genius will only result in +4 Int, rather than +12 as in the unmodified game.
+
+A few potions generate spurious matches; healing potions have a short-duration visual effect that the code catches. This shouldn't cause any actual problems, as permanent effects such as healing don't get removed.
 
 
 Content Changes:
@@ -215,14 +235,16 @@ In my latest full run of BGEE, I ran an evil party including Baeloth. I tried ou
 This component changes that gamble to be significantly more exciting; you can get gems up to a Black Opal in value. But beware - the damage you take if the attempt fails is also increased.
 With this component, there is approximately a 1/3 chance of getting a gem. If you don't, you take 1d12 damage of a random element.
 
+Compatibility note: this component overwrites any existing modifications to Baeloth's ring BARING.ITM. Do not use if you've already altered the item.
+
 - Allies against Bodhi are better prepared against vampires
 Games: BG2EE, EET
 
 This component makes slight improvements to all three parties of potential allies in the fight against Bodhi.
-- The paladin leader, Eric Vanstraelen, is now an Undead Hunter and gains the passive benefits of that kit.
+- The paladin leader, Eric Vanstraaten, is now an Undead Hunter and gains the passive benefits of that kit.
 - The thief leader, Arkanis Gath, now has an (undroppable) Amulet of Power so he can't be level-drained into oblivion.
 - Drizzt's companion Wulfgar can now hit vampires with his hammer Aegis-fang +3; it was inexplicably set to enchantment level 0 before.
-(Drizzt already has an undroppable Amulet of Power; he doesn't need any help.) 
+(Drizzt already has an undroppable Amulet of Power; he doesn't need any help.)
 
 - Noober's Game
 Games: BG2EE, EET
@@ -236,8 +258,19 @@ That final challenger is ... Noober. Who talks to you. But beware - he has the l
 What is that conversation? It's a game - a fully realized text adventure game. I've previously brought that game out to be played in a thread on the Beamdog forums, and here it is in the main campaign. The bartender in Amkethran has a new scroll in his shop...
 A number of small changes have been made from the original version of the conversation; fixes to incorrect string references, flow corrections, a few new reply options, and a rebalancing of the random elements (all in the player's favor).
 
+- Bigger random spawns
+Games: BGEE, BG2EE, EET
 
-Uncategorized:
+Particularly in BG1 wilderness maps, many monsters are generated by "spawn points". A monster type is chosen, and a number of monsters of that type based on the party's size and level spawns in. Unfortunately, many of these spawns are capped at disappointingly small numbers; even if you visit the gnoll fortress with a maxed-out party, you'll only see four gnolls or xvarts per spawn point.
+
+This component raises those caps. If you've got the levels for it, you'll see groups of up to ten monsters of the same type.
+
+This has minimal effect on the other campaigns, as they utilize a different system for most monster spawns. While there are still spawn points in BG2EE, most of them generate tokens such as "rdgob" which unpack to groups of creatures - in that case, two archer goblins and four melee goblins. Spawn points of this type are unchanged.
+
+Disclaimer: This has not been tested for balance. At all. But you should be able to mow through packs of low-level enemies anyway, shouldn't you?
+
+
+AI tweaks:
 
 
 - Slightly improved party AI
@@ -252,3 +285,57 @@ If you change an NPC's class, including by dual-classing them, the character is 
 
 Compatibility note: Attempting to install this component on top of any modification of the script logic for any of these five actions is likely to break things. If you're lucky, this component will simply do nothing. If you're not, characters could forget how to perform these actions automatically at all. Don't risk it.
 The scripts modified by this component are bddefai.bcs (player characters) and bd*****c.bcs (joinable NPCs) as referenced in PARTYAI.2DA. Scripts for the SoD-only joinables (Caelar, Corwin, Glint, M'Khiin, Voghiln) are excluded, since I don't know exactly what's in them.
+
+
+Cosmetic changes:
+
+
+- Map notes for BGEE quests
+Games: BGEE, EET
+
+Many BGEE quests require you to barge into an unmarked home in one of the game's cities to talk to the NPC there. And if you don't have what they need with you, you'll have to come back later. This component adds map notes for those homes, once you have a reason to go there - either you've been given the quest, or you have the quest item with you.
+BGEE also has pre-placed map notes for some of these homes. This component removes those notes, then re-adds them after suitable unlock conditions.
+For example, here's what the component does in Beregost:
+- Landrin's house loses its marker. The marker comes back once you have either talked to Landrin or picked up an item she wants.
+- Mirianne's house gains a marker once you either talk to her or pick up the scroll.
+- Mr. Colquetle's house gets a marker once you pick up his son's amulet. (Talking to him without it doesn't give the quest, so you don't get the marker for it either.)
+
+- Standardize tavern and inn music
+Games: BGEE, EET
+
+About 80% of the tavern and inn areas in the BGEE campaign follow a standard pattern for their area music; places where people eat and drink get tavern music, bedrooms have no music assigned. Those places don't actually have no music at all though; they inherit from the master area instead.
+This component standardizes the remaining 20% of areas to follow this pattern.
+
+BG2EE organizes area music a little differently, and has fewer inns. No changes are needed for that campaign.
+SoD areas are also unchanged, as I don't have that expansion.
+
+- Randomize battle music
+Games: BGEE, BG2EE, EET
+
+This component assigns randomly chosen battle music to all areas, including those that previously had no battle music assigned. The possible choices include all "songs" in base BGEE and BG2EE designed as battle music, plus anything used as battle music in existing areas that wasn't on the list already.
+The random choice is made when this component is installed. Once installed, each area will have consistent battle music.
+
+I had to do some pre-processing to remove unsuitable battle music from a number of areas in BGEE and BG2EE. This pre-processing has not been done with SoD, so that expansion may introduce unsuitable songs into the random pool.
+EET games are also a major unknown for me, due to the way that battle music differs between BGEE and BG2EE. Not only do the songs have different IDS references, songs with the same name can be completely different. I don't think it'll add extra unsuitable songs into the pool, at least.
+
+Changelog:
+
+Version 2.0:
+- Mac and Windows installers added
+New components added:
+- Map notes for BGEE quests
+- Standardize tavern and inn music
+- Randomize battle music
+- Potion effects don't stack with themselves
+- Bigger random spawns
+Existing components updated:
+- Vernus can be raised: ToB Bhaal power resurrection added to list of spells that work.
+- Fix Black Pits oversights: Sandthief's Ring is now sold fully charged.
+- Enchant Weapon works in contingencies: Bug fixed. Now properly deletes all existing rows of that 2DA.
+- Shapeshift corrections: Shapeshift weapons now block the off hand in BGEE.
+- Dueling fireshields don't go infinite: Now actually works in all games, not just BG2EE.
+- Undead Hunters are better at Turn Undead: Description now uses the correct dash.
+- Various components: tweaked code to improve performance or cover possible issues.
+- Various components: added debug messages. The switch to enable/disable them is in jtweaks-ini.tph.
+
+Version 1.1: Fixed an ordering error in the preamble. Should install now.

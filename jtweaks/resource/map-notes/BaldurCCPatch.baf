@@ -1,0 +1,42 @@
+IF
+	Global("J8#FeloniusNote","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#FeloniusNote","GLOBAL",1)
+		RemoveMapNote([2003.732],%FeloniusNote%)
+END
+
+IF
+	Global("J8#FeloniusNote","GLOBAL",1)
+	GlobalGT("Baldurian","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#FeloniusNote","GLOBAL",2)
+		AddMapNote([2003.732],%FeloniusNote%)
+END
+
+IF
+	Global("J8#NadineNote","GLOBAL",0)
+	GlobalGT("GivenEuricQuest","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#NadineNote","GLOBAL",2)
+		AddMapNote([4160.930],%NadineNote%)
+END
+
+IF
+	Global("J8#OberanNote","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#OberanNote","GLOBAL",1)
+		RemoveMapNote([3446.176],%OberanNote%)
+END
+
+IF
+	Global("J8#OberanNote","GLOBAL",1)
+	GlobalGT("HelpAlatos","GLOBAL",0)
+THEN
+	RESPONSE #100
+		SetGlobal("J8#OberanNote","GLOBAL",2)
+		AddMapNote([3446.176],%OberanNote%)
+END

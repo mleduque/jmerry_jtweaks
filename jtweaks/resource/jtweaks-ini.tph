@@ -1,0 +1,5 @@
+//
+// Ini file. Currently only contains the switch to enable/disable debug messages.
+//
+
+OUTER_SET debug_messages = 0
