@@ -130,6 +130,16 @@ Games: BGEE
 Imoen and Mordaine (from the "combat testing" party in Candlekeep) start with wands of Magic Missiles. What you might not notice is that they aren't the same as all of the other wands of Magic Missiles in the game; they're technically a different item, and they lack the effect that allows Shield to block them.
 This component standardizes Imoen and Mordaine to use the same Wand of Magic Missiles as everybody else.
 
+- Nature's Beauty blindness can be cured
+Games: BGEE, BG2EE, EET
+
+The 7th level druid spell Nature's Beauty inflicts permanent blindness with no save. This is intended to be curable and dispellable, but the effect is unfortunately bugged. While the "Blinded" portrait icon can be dispelled or removed with an effect such as Cure Disease, and the character's vision radius can be restored with a Cure Disease effect, the 4-point penalties to base (unarmored) AC and to THAC0 are completely unremovable; they're applied to the creature's base stats.
+This component restores the intended dispel/cure behavior by making the blindness technically temporary. It'll wear off ... in about eleven game years. Just cure it already. Clones of the spell - anything with the same permanent blindness effect - will also be patched.
+
+Nature's Beauty is a party-friendly spell, and the only enemy that uses it in the vanilla campaign is the immortal version of Faldorn at the Druid Grove. As such, you are unlikely to notice the effect of this component unless you have a mod that changes enemy spellcasting behavior.
+
+I have previously posted a quick and dirty "drop in override" version of this on the Beamdog and Gibberlings 3 forums. This version comes with better compatibility (no string errors on non-BG2EE games, no overwriting other modded effects of the spell) and a larger duration number.
+
 
 Rule Changes:
 
@@ -319,6 +329,10 @@ I had to do some pre-processing to remove unsuitable battle music from a number 
 EET games are also a major unknown for me, due to the way that battle music differs between BGEE and BG2EE. Not only do the songs have different IDS references, songs with the same name can be completely different. I don't think it'll add extra unsuitable songs into the pool, at least.
 
 Changelog:
+
+Version 2.1:
+New component added:
+- Nature's Beauty blindness can be cured
 
 Version 2.0:
 - Mac and Windows installers added

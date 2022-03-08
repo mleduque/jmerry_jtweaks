@@ -10,7 +10,7 @@ ALWAYS
 	INCLUDE ~jtweaks/resource/jtweaks-ini.tph~
 END
 
-VERSION ~2.0~
+VERSION ~2.1~
 
 README ~jtweaks/readme-jtweaks.txt~
 
@@ -1956,3 +1956,16 @@ GROUP @3
 			END // The actual change
 		END
 	BUT_ONLY
+
+//
+//
+// Nature's Beauty blindness can be cured
+//
+//
+
+BEGIN @36000 DESIGNATED 360
+GROUP @1
+	COPY_EXISTING_REGEXP_GLOB ~^.+\.SPL$~ ~override~
+		LPF ALTER_EFFECT INT_VAR silent=1 match_opcode=74 match_timing=1 timing=0 duration=30000000 END
+		LPF ALTER_EFFECT INT_VAR silent=1 match_opcode=142 match_parameter2=8 match_timing=1 timing=0 duration=30000000 END
+	BUT_ONLY // Change broken permanent effect to long-duration temporary.
