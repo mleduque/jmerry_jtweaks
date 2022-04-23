@@ -10,7 +10,7 @@ ALWAYS
 	INCLUDE ~jtweaks/resource/jtweaks-ini.tph~
 END
 
-VERSION ~2.2~
+VERSION ~2.3~
 
 README ~jtweaks/readme-jtweaks.txt~
 

@@ -1,6 +1,6 @@
 jmerry's Tweak Collection
 
-Version 2.2
+Version 2.3
 
 Overview: This mod is a WeidDU compilation of fixes, rule tweaks, and a few bits of truly altered content. Some of it is stuff I've used in my own games, while other parts are newly written now that I have the tools. I've tried to stay out of the way of the larger Tweaks Anthology, as I could just include that mod's components instead.
 
@@ -329,6 +329,9 @@ I had to do some pre-processing to remove unsuitable battle music from a number 
 EET games are also a major unknown for me, due to the way that battle music differs between BGEE and BG2EE. Not only do the songs have different IDS references, songs with the same name can be completely different. I don't think it'll add extra unsuitable songs into the pool, at least.
 
 Changelog:
+
+Version 2.3:
+- Windows installer is now WeiDU version 249 instead of version 242. It should work now. No other changes, so feel free to skip this if you installed the mod already.
 
 Version 2.2:
 - I rushed that last release without testing it. The new component in version 2.1 had a syntax error. One character changed. Now it works.
